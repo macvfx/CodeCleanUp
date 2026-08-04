@@ -5,6 +5,11 @@ folder for Xcode projects/workspaces, estimates recoverable space, optionally
 runs `xcodebuild clean`, removes matching `DerivedData`, and creates a
 password-protected zip archive — now on a schedule, with no terminal needed.
 
+> **Repo name:** this project lives in the `CodeCleanUp` repository — the name
+> reflects what it does: clean the unneeded code cruft (`.build`, `DerivedData`,
+> caches, build products) before backing up your project files with the
+> Code Project Backup app.
+
 ## Features
 
 - **Menu bar app** — lives in the status bar, no Dock icon (`LSUIElement`)
