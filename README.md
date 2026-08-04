@@ -1,9 +1,10 @@
 # Code Project Backup
 
-A macOS menu bar app that mirrors `find_xcode_projects_cleanup.sh`: it scans a
-folder for Xcode projects/workspaces, estimates recoverable space, optionally
-runs `xcodebuild clean`, removes matching `DerivedData`, and creates a
-password-protected zip archive — now on a schedule, with no terminal needed.
+A macOS menu bar app that mirrors [`find_xcode_projects_cleanup.sh`](https://github.com/macvfx/find)
+(the original shell script): it scans a folder for Xcode projects/workspaces,
+estimates recoverable space, optionally runs `xcodebuild clean`, removes matching
+`DerivedData`, and creates a password-protected zip archive — now on a schedule,
+with no terminal needed.
 
 > **Repo name:** this project lives in the `CodeCleanUp` repository — the name
 > reflects what it does: clean the unneeded code cruft (`.build`, `DerivedData`,
