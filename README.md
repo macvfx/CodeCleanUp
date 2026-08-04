@@ -22,8 +22,11 @@ with no terminal needed.
   `.swiftpm`, `SourcePackages`, `node_modules`, `.DS_Store`, `__MACOSX`, `.app`,
   `.dSYM`, build products/intermediates, …)
 - **Password modes**
-  - `Keychain` — password stored in macOS Keychain (create your own via `security add-generic-password`, same method as the script)
-  - `Custom` — your own password saved to Keychain under `custom_password`
+  - `Keychain` — saves to (and reads) the `zip_password` Keychain item, the same
+    account name the shell script uses. Create it via **Save to Keychain** in
+    Settings, or with `security add-generic-password -s CodeProjectBackup -a zip_password -w <password>`
+  - `Custom` — a separate app-only password stored under the `custom_password`
+    Keychain item, for when you want a different password than `zip_password`
   - `None` — unencrypted archive
 - **Scheduled runs** — hourly, daily, or weekly. Checks every minute; missed runs
   are caught up after launch/wake. Scheduled runs use the Keychain/Custom password,
