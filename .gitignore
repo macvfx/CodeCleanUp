@@ -1,0 +1,19 @@
+# Build output
+dist/
+*.dmg
+*.sha256.txt
+*.release.txt
+
+# Signing secrets (copy from signing.env.example)
+scripts/signing.env
+
+# Xcode
+xcuserdata/
+DerivedData/
+*.xcuserstate
+
+# Swift Package Manager
+.build/
+
+# macOS
+.DS_Store
