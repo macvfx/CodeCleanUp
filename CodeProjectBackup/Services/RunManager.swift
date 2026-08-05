@@ -75,6 +75,7 @@ final class PipelineRunner {
         let reportDir = config.reportDir.expandingTilde()
         let timestamp = Format.timestamp.string(from: Date())
         let slug = (searchRoot as NSString).lastPathComponent.replacingOccurrences(of: " ", with: "_")
+        let startedAt = Date()
 
         log("==============================================")
         log("  Code Project Backup")
@@ -124,7 +125,7 @@ final class PipelineRunner {
             log("Xcode clean: skipped.")
         }
 
-        if cancelled() { return summaryLine(scan: scan, clean: clean, archivePath: nil, timestamp: timestamp, cancelled: true) }
+        if cancelled() { return finish(scan: scan, clean: clean, archivePath: nil, timestamp: timestamp, startedAt: startedAt, cancelled: true, reportOK: false) }
 
         if config.doDerivedData, !derivedFolders.isEmpty {
             log("==============================================")
@@ -137,7 +138,7 @@ final class PipelineRunner {
             log("DerivedData cleanup: skipped.")
         }
 
-        if cancelled() { return summaryLine(scan: scan, clean: clean, archivePath: nil, timestamp: timestamp, cancelled: true) }
+        if cancelled() { return finish(scan: scan, clean: clean, archivePath: nil, timestamp: timestamp, startedAt: startedAt, cancelled: true, reportOK: false) }
 
         if config.doArchive {
             log("==============================================")
@@ -172,6 +173,8 @@ final class PipelineRunner {
             searchRoot: searchRoot,
             reportDir: reportDir,
             timestamp: timestamp,
+            alias: config.reportAlias,
+            folderSlug: slug,
             scan: scan,
             derivedDataFolders: derivedFolders,
             derivedDataSizeKB: derivedSizeKB,
@@ -179,6 +182,7 @@ final class PipelineRunner {
             derivedRemoved: derivedRemoved,
             archive: archivePath
         )
+        let reportOK = reportFiles != nil
         if let reportFiles {
             log("")
             log("Report saved : \(reportFiles.txtPath)")
@@ -193,7 +197,35 @@ final class PipelineRunner {
         log("  All done!")
         log("==============================================")
 
-        return summaryLine(scan: scan, clean: clean, archivePath: archivePath, timestamp: timestamp, cancelled: false)
+        return finish(scan: scan, clean: clean, archivePath: archivePath, timestamp: timestamp, startedAt: startedAt, cancelled: false, reportOK: reportOK)
+    }
+
+    private func finish(
+        scan: ScanResult,
+        clean: CleanSummary,
+        archivePath: String?,
+        timestamp: String,
+        startedAt: Date,
+        cancelled: Bool,
+        reportOK: Bool
+    ) -> String {
+        let summary = summaryLine(scan: scan, clean: clean, archivePath: archivePath, timestamp: timestamp, cancelled: cancelled)
+        let status: String
+        if cancelled {
+            status = "CANCELLED"
+        } else if !reportOK {
+            status = "ERROR"
+        } else {
+            status = "OK"
+        }
+        RunLogService.record(
+            start: startedAt,
+            end: Date(),
+            status: status,
+            mode: config.scheduleMode.rawValue,
+            details: summary
+        )
+        return summary
     }
 
     private func cancelled() -> Bool {

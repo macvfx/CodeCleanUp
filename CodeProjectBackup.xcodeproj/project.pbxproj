@@ -15,6 +15,7 @@
 		627BF02997C691F2C4E5A926 /* ReportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3D67B1003710E06DD302F82 /* ReportService.swift */; };
 		76E097A536C87CA4B8AB4688 /* ProjectScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6426FE05F6B46F482DFA6E6 /* ProjectScanner.swift */; };
 		7D9D9C59FD950DB9A2C4AC8D /* CleanupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23CE96555C89F9BEB81656F1 /* CleanupService.swift */; };
+		A0E9EEA5CEF1FE8BA41C008D /* RunLogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EF202E96A84B8B8295018B6 /* RunLogService.swift */; };
 		A7BCCE7FFB8125ECD34FDDE9 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E662D12DE09B6CB26436252 /* SettingsWindowController.swift */; };
 		A9E0E0AB5C15D86266026AD3 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91C74A56CA6AB5992001F0A6 /* SettingsStore.swift */; };
 		AD511DF1B53709C33913FE14 /* SchedulerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525A547A1450B7AEDB672D7B /* SchedulerService.swift */; };
@@ -29,6 +30,7 @@
 		0A94E8263137C1FE75DF79DE /* ArchiveService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveService.swift; sourceTree = "<group>"; };
 		23847DCA7BCC6AE48E6D9F27 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		23CE96555C89F9BEB81656F1 /* CleanupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanupService.swift; sourceTree = "<group>"; };
+		3EF202E96A84B8B8295018B6 /* RunLogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunLogService.swift; sourceTree = "<group>"; };
 		525A547A1450B7AEDB672D7B /* SchedulerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchedulerService.swift; sourceTree = "<group>"; };
 		721E8CA74022605892A10C47 /* CodeProjectBackup.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CodeProjectBackup.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		77BAE2F1560A3EE100C5A77F /* Format.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Format.swift; sourceTree = "<group>"; };
@@ -95,6 +97,7 @@
 				8B96EE5F7D5AB1067B7AF75D /* ProcessRunner.swift */,
 				F6426FE05F6B46F482DFA6E6 /* ProjectScanner.swift */,
 				B3D67B1003710E06DD302F82 /* ReportService.swift */,
+				3EF202E96A84B8B8295018B6 /* RunLogService.swift */,
 				8B7C0C668C399D354D608BCE /* RunManager.swift */,
 				525A547A1450B7AEDB672D7B /* SchedulerService.swift */,
 			);
@@ -188,6 +191,7 @@
 				24E536D59FBE7B4D0E98A886 /* ProcessRunner.swift in Sources */,
 				76E097A536C87CA4B8AB4688 /* ProjectScanner.swift in Sources */,
 				627BF02997C691F2C4E5A926 /* ReportService.swift in Sources */,
+				A0E9EEA5CEF1FE8BA41C008D /* RunLogService.swift in Sources */,
 				0614E906AFA039E8D812F0B2 /* RunLogView.swift in Sources */,
 				517599C50A676F70389DE79E /* RunManager.swift in Sources */,
 				AD511DF1B53709C33913FE14 /* SchedulerService.swift in Sources */,

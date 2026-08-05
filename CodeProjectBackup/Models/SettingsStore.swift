@@ -44,6 +44,8 @@ struct RunConfiguration {
     var passwordMode: PasswordMode
     var exclusions: [String]
     var prunePaths: [String]
+    var reportAlias: String
+    var scheduleMode: ScheduleMode
 }
 
 final class SettingsStore: ObservableObject {
@@ -109,6 +111,9 @@ final class SettingsStore: ObservableObject {
     @Published var prunePathsText: String {
         didSet { defaults.set(prunePathsText, forKey: "prunePathsText") }
     }
+    @Published var reportAlias: String {
+        didSet { defaults.set(reportAlias, forKey: "reportAlias") }
+    }
 
     init() {
         searchRoot = defaults.string(forKey: "searchRoot") ?? "~/My Coding Projects"
@@ -125,10 +130,20 @@ final class SettingsStore: ObservableObject {
         lastScheduledRun = defaults.object(forKey: "lastScheduledRun") as? Date
         exclusionsText = defaults.string(forKey: "exclusionsText") ?? SettingsStore.defaultExclusions.joined(separator: "\n")
         prunePathsText = defaults.string(forKey: "prunePathsText") ?? SettingsStore.defaultPrunePaths.joined(separator: "\n")
+        reportAlias = defaults.string(forKey: "reportAlias") ?? ""
     }
 
     var resolvedSearchRoot: String { searchRoot.expandingTilde() }
     var resolvedReportDir: String { reportDir.expandingTilde() }
+
+    var reportFolderSlug: String {
+        (resolvedSearchRoot as NSString).lastPathComponent.replacingOccurrences(of: " ", with: "_")
+    }
+
+    var reportFilenamePreview: String {
+        let timestamp = Format.timestamp.string(from: Date())
+        return ReportService.reportBaseName(alias: reportAlias, folderSlug: reportFolderSlug, timestamp: timestamp)
+    }
 
     func makeRunConfiguration() -> RunConfiguration {
         RunConfiguration(
@@ -140,7 +155,9 @@ final class SettingsStore: ObservableObject {
             zipPath: zipPath,
             passwordMode: passwordMode,
             exclusions: lines(from: exclusionsText),
-            prunePaths: lines(from: prunePathsText)
+            prunePaths: lines(from: prunePathsText),
+            reportAlias: reportAlias,
+            scheduleMode: scheduleMode
         )
     }
 

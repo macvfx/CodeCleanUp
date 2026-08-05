@@ -6,10 +6,31 @@ struct ReportFiles {
 }
 
 enum ReportService {
+    static func reportBaseName(alias: String, folderSlug: String, timestamp: String) -> String {
+        var parts = ["xcode_projects"]
+        let cleanAlias = sanitize(alias)
+        if !cleanAlias.isEmpty {
+            parts.append(cleanAlias)
+        }
+        if !folderSlug.isEmpty {
+            parts.append(folderSlug)
+        }
+        parts.append(timestamp)
+        return parts.joined(separator: "_")
+    }
+
+    private static func sanitize(_ text: String) -> String {
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "_-"))
+        let runs = text.components(separatedBy: allowed.inverted).filter { !$0.isEmpty }
+        return runs.joined(separator: "_")
+    }
+
     static func write(
         searchRoot: String,
         reportDir: String,
         timestamp: String,
+        alias: String,
+        folderSlug: String,
         scan: ScanResult,
         derivedDataFolders: [String],
         derivedDataSizeKB: Int,
@@ -25,8 +46,9 @@ enum ReportService {
             return nil
         }
 
-        let txtPath = "\(dir)/xcode_projects_\(timestamp).txt"
-        let csvPath = "\(dir)/xcode_projects_\(timestamp).csv"
+        let baseName = reportBaseName(alias: alias, folderSlug: folderSlug, timestamp: timestamp)
+        let txtPath = "\(dir)/\(baseName).txt"
+        let csvPath = "\(dir)/\(baseName).csv"
 
         var lines: [String] = []
         lines.append("Xcode Containers Report")

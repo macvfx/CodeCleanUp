@@ -12,6 +12,24 @@ struct SettingsView: View {
                 PathField(label: "Report directory", path: $settings.reportDir, chooseFile: false)
             }
 
+            Section("Report") {
+                TextField("Filename alias (optional)", text: $settings.reportAlias)
+                HStack {
+                    Text("Filename")
+                    Spacer()
+                    Text("\(settings.reportFilenamePreview).txt / .csv")
+                        .font(.system(.body, design: .monospaced))
+                        .textSelection(.enabled)
+                }
+                Text("Reports are written to \(settings.resolvedReportDir).")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text("Run log: \(RunLogService.logPath)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+            }
+
             Section("Cleanup") {
                 Toggle("Run xcodebuild clean", isOn: $settings.doClean)
                 Toggle("Remove matching DerivedData folders", isOn: $settings.doDerivedData)
