@@ -31,8 +31,9 @@ with no terminal needed.
 - **Scheduled runs** — hourly, daily, or weekly. Checks every minute; missed runs
   are caught up after launch/wake. Scheduled runs use the Keychain/Custom password,
   never prompt.
-- **Reports** — timestamped `xcode_projects_YYYY-MM-DD_HH-MM-SS.txt` and `.csv` in
-  the report directory (default `~/Desktop`)
+- **Reports** — timestamped `alias_folder_YYYY-MM-DD_HH-MM-SS.txt` and `.csv` in
+  the report directory (default `~/Desktop`); optional alias and search-root
+  folder name are included in the filename
 
 ## Settings
 

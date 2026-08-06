@@ -7,7 +7,7 @@ struct ReportFiles {
 
 enum ReportService {
     static func reportBaseName(alias: String, folderSlug: String, timestamp: String) -> String {
-        var parts = ["xcode_projects"]
+        var parts: [String] = []
         let cleanAlias = sanitize(alias)
         if !cleanAlias.isEmpty {
             parts.append(cleanAlias)
