@@ -42,10 +42,14 @@ struct RunConfiguration {
     var doArchive: Bool
     var zipPath: String
     var passwordMode: PasswordMode
+    var doRemoveBuildFolders: Bool
+    var excludeSecretsAlways: Bool
     var exclusions: [String]
     var prunePaths: [String]
     var reportAlias: String
     var scheduleMode: ScheduleMode
+    /// List what the build-folder step would remove, without deleting anything.
+    var dryRunCleanup = false
 }
 
 final class SettingsStore: ObservableObject {
@@ -105,6 +109,14 @@ final class SettingsStore: ObservableObject {
             }
         }
     }
+    /// Removes `.build` and Xcode build-output folders found by the scan. Off by default.
+    @Published var doRemoveBuildFolders: Bool {
+        didSet { defaults.set(doRemoveBuildFolders, forKey: "doRemoveBuildFolders") }
+    }
+    /// Skip credential files even when the archive is password-protected.
+    @Published var excludeSecretsAlways: Bool {
+        didSet { defaults.set(excludeSecretsAlways, forKey: "excludeSecretsAlways") }
+    }
     @Published var exclusionsText: String {
         didSet { defaults.set(exclusionsText, forKey: "exclusionsText") }
     }
@@ -128,7 +140,21 @@ final class SettingsStore: ObservableObject {
         scheduleMinute = defaults.object(forKey: "scheduleMinute") as? Int ?? 0
         scheduleWeekday = defaults.object(forKey: "scheduleWeekday") as? Int ?? 1
         lastScheduledRun = defaults.object(forKey: "lastScheduledRun") as? Date
-        exclusionsText = defaults.string(forKey: "exclusionsText") ?? SettingsStore.defaultExclusions.joined(separator: "\n")
+        doRemoveBuildFolders = defaults.object(forKey: "doRemoveBuildFolders") as? Bool ?? false
+        excludeSecretsAlways = defaults.object(forKey: "excludeSecretsAlways") as? Bool ?? false
+        var savedExclusions = defaults.string(forKey: "exclusionsText") ?? SettingsStore.defaultExclusions.joined(separator: "\n")
+        // Saved settings override the defaults, so patterns added in a newer version
+        // are appended once; the user's own edits and removals are otherwise kept.
+        if defaults.integer(forKey: "exclusionsVersion") < ArchiveService.exclusionsVersion {
+            let present = Set(savedExclusions.split(whereSeparator: \.isNewline).map { $0.trimmingCharacters(in: .whitespaces) })
+            let missing = SettingsStore.defaultExclusions.filter { !present.contains($0) }
+            if !missing.isEmpty {
+                savedExclusions += (savedExclusions.hasSuffix("\n") ? "" : "\n") + missing.joined(separator: "\n")
+            }
+            defaults.set(savedExclusions, forKey: "exclusionsText")
+            defaults.set(ArchiveService.exclusionsVersion, forKey: "exclusionsVersion")
+        }
+        exclusionsText = savedExclusions
         prunePathsText = defaults.string(forKey: "prunePathsText") ?? SettingsStore.defaultPrunePaths.joined(separator: "\n")
         reportAlias = defaults.string(forKey: "reportAlias") ?? ""
     }
@@ -154,6 +180,8 @@ final class SettingsStore: ObservableObject {
             doArchive: doArchive,
             zipPath: zipPath,
             passwordMode: passwordMode,
+            doRemoveBuildFolders: doRemoveBuildFolders,
+            excludeSecretsAlways: excludeSecretsAlways,
             exclusions: lines(from: exclusionsText),
             prunePaths: lines(from: prunePathsText),
             reportAlias: reportAlias,

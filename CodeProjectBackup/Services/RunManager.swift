@@ -39,6 +39,18 @@ final class RunManager: ObservableObject {
         config.doClean = false
         config.doDerivedData = false
         config.doArchive = false
+        config.doRemoveBuildFolders = false
+        run(config: config)
+    }
+
+    /// Lists the build folders that would be removed, deleting nothing.
+    func runPreviewCleanup(config: RunConfiguration) {
+        var config = config
+        config.doClean = false
+        config.doDerivedData = false
+        config.doArchive = false
+        config.doRemoveBuildFolders = true
+        config.dryRunCleanup = true
         run(config: config)
     }
 
@@ -86,14 +98,15 @@ final class PipelineRunner {
         log("")
 
         let scan = ProjectScanner.scan(searchRoot: searchRoot, prunePaths: config.prunePaths, log: log)
-        log("Found \(scan.containers.count) Xcode container(s), \(scan.buildFolders.count) .build folder(s).")
+        log("Found \(scan.containers.count) Xcode container(s), \(scan.buildFolders.count) build folder(s).")
         for container in scan.containers {
             let schemes = container.schemes.isEmpty ? "(no schemes)" : container.schemes.joined(separator: ", ")
             log("  [\(container.kind)] \(container.path)")
             log("    Schemes: \(schemes)")
         }
         for build in scan.buildFolders {
-            log("  .build \(Format.human(build.sizeKB)) — \(build.path)")
+            let note = build.skipReason.map { "  [kept: \($0)]" } ?? ""
+            log("  \(build.kind.rawValue) \(Format.human(build.sizeKB)) — \(build.path)\(note)")
         }
         log("")
 
@@ -105,9 +118,9 @@ final class PipelineRunner {
             log("  DerivedData \(Format.human(kb)) — \(folder)")
         }
         log("DerivedData: \(derivedFolders.count) matching folder(s).")
-        log("Estimated recoverable (.build)      : \(Format.human(scan.buildTotalKB))")
+        log("Estimated recoverable (build folders): \(Format.human(scan.removableBuildKB)) removable of \(Format.human(scan.buildTotalKB)) found")
         log("Estimated recoverable (DerivedData) : \(Format.human(derivedSizeKB))")
-        log("Estimated combined recoverable      : \(Format.human(scan.buildTotalKB + derivedSizeKB))")
+        log("Estimated combined recoverable      : \(Format.human(scan.removableBuildKB + derivedSizeKB))")
         log("")
 
         var clean = CleanSummary()
@@ -140,12 +153,46 @@ final class PipelineRunner {
 
         if cancelled() { return finish(scan: scan, clean: clean, archivePath: nil, timestamp: timestamp, startedAt: startedAt, cancelled: true, reportOK: false) }
 
+        var buildRemoved = BuildCleanSummary()
+        if config.doRemoveBuildFolders, !scan.buildFolders.isEmpty {
+            log("==============================================")
+            log(config.dryRunCleanup ? "  Build Folder Cleanup (preview, nothing deleted)" : "  Build Folder Cleanup")
+            log("==============================================")
+            buildRemoved = CleanupService.removeBuildFolders(
+                scan.buildFolders,
+                searchRoot: searchRoot,
+                dryRun: config.dryRunCleanup,
+                log: log
+            )
+            let verb = config.dryRunCleanup ? "Would remove" : "Removed"
+            log("  \(verb): \(buildRemoved.removed) folder(s), \(Format.human(buildRemoved.removedKB)); skipped \(buildRemoved.skipped); failed \(buildRemoved.failed)")
+            log("")
+        } else {
+            log("Build folder cleanup: skipped.")
+        }
+
+        if cancelled() { return finish(scan: scan, clean: clean, archivePath: nil, timestamp: timestamp, startedAt: startedAt, cancelled: true, reportOK: false) }
+
         if config.doArchive {
             log("==============================================")
             log("  Archive Projects Folder")
             log("==============================================")
             let zipPath = resolveZipPath(zipPathSetting: config.zipPath, searchRoot: searchRoot, slug: slug, timestamp: timestamp)
             let password = resolvePassword()
+            let hasPassword = !(password ?? "").isEmpty
+            let excludeSecrets = config.excludeSecretsAlways || !hasPassword
+            if excludeSecrets {
+                log("Credential files (signing.env, .sentryclirc, .env, .p12 …) will be left out of the archive.")
+            }
+            if hasPassword {
+                log("Note: zip's built-in encryption (ZipCrypto) is weak and the password is visible to other local processes while zip runs. Keep the archive on trusted storage.")
+            }
+            let artifactPaths = scan.buildFolders.filter { $0.kind == .xcodeBuild && !$0.hasTrackedFiles }.map(\.path)
+            let exclusions = ArchiveService.effectiveExclusions(
+                userPatterns: config.exclusions,
+                artifactPaths: artifactPaths,
+                excludeSecrets: excludeSecrets
+            )
             if config.passwordMode != .none, password == nil {
                 let modeLabel = config.passwordMode == .keychain ? "Keychain" : "Custom"
                 log("✗ No zip password available (\(modeLabel) mode). Open Settings and save a password — archive skipped.")
@@ -157,7 +204,7 @@ final class PipelineRunner {
                     searchRoot: searchRoot,
                     zipPath: zipPath,
                     password: password,
-                    exclusions: config.exclusions,
+                    exclusions: exclusions,
                     handle: handle,
                     log: log
                 ) {
@@ -180,6 +227,8 @@ final class PipelineRunner {
             derivedDataSizeKB: derivedSizeKB,
             clean: clean,
             derivedRemoved: derivedRemoved,
+            buildRemoved: buildRemoved,
+            dryRun: config.dryRunCleanup,
             archive: archivePath
         )
         let reportOK = reportFiles != nil

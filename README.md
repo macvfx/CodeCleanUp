@@ -17,7 +17,13 @@ with no terminal needed.
 - **Scan** for `.xcodeproj` / `.xcworkspace`, detect shared schemes via `xcodebuild -list`
 - **Estimate** recoverable `.build` + `DerivedData` space before cleaning
 - **Cleanup** — `xcodebuild clean` on detected schemes + remove matching `DerivedData` folders
-- **Archive** — password-protected (or unencrypted) `zip` with the same cache/build
+- **Build folder removal** (off by default) — deletes `.build` and Xcode build-output
+  folders under the search root. They are found by content (`Build/Products`,
+  `CompilationCache.noindex`, …), not by name. Folders with git-tracked files or
+  changed in the last hour are kept. **Preview Build Cleanup** in the menu lists
+  them first and deletes nothing.
+- **Archive** — skips the exact build trees the scan found, plus credential files when
+  the archive is unencrypted (or always, if set). Password-protected (or unencrypted) `zip` with the same cache/build
   excludes as the script (`.build`, `DerivedData`, `Pods`, `Carthage/Build`,
   `.swiftpm`, `SourcePackages`, `node_modules`, `.DS_Store`, `__MACOSX`, `.app`,
   `.dSYM`, build products/intermediates, …)
@@ -49,7 +55,8 @@ Open Settings from the menu bar icon. All settings persist in `UserDefaults`.
 | Archive path | `~/Downloads` | folder or full file path; empty = Downloads |
 | Password mode | Keychain | |
 | Schedule | Manual | Manual / Hourly / Daily / Weekly |
-| Archive exclusions | 18 patterns | editable, one per line |
+| Remove build folders | off | preview first |
+| Archive exclusions | 27 patterns | editable, one per line |
 | Pruned scan paths | `~/Library /System /Volumes /private /usr /opt` | editable |
 
 ## Running the pipeline
@@ -118,6 +125,9 @@ grant **Full Disk Access** to the app in:
 - Cleanup and archiving are **off by default per-action toggles away** from the
   destructive steps: nothing runs until you trigger a run.
 - Deleting `.build` and `DerivedData` is safe — Xcode/SPM regenerates them.
-- Use **Keychain** password mode for unattended scheduled backups; the password
-  never appears on a command line (the app passes it to `zip` via the `-P` flag
-  only for the duration of the run, same as the script).
+- Use **Keychain** password mode for unattended scheduled backups. The password is
+  passed to `zip` with `-P`, so other local processes can see it in the process
+  arguments while `zip` runs, and zip's built-in encryption (ZipCrypto) is weak.
+  Keep archives on trusted storage.
+- Build folder removal is off by default, skips folders with git-tracked files or
+  recent changes, and never touches paths outside the search root.

@@ -19,8 +19,62 @@ enum ArchiveService {
         "*/Logs/Build/*",
         "*/*.dSYM/*",
         "*/*.app/*",
-        "*/node_modules/*"
+        "*/node_modules/*",
+        // Xcode 16+ / Swift build caches. CompilationCache.noindex can hold a
+        // sparse file that reports tens of GB, which zip would read in full.
+        "*/CompilationCache.noindex/*",
+        "*/SwiftExplicitPrecompiledModules/*",
+        "*/SDKExplicitPrecompiledModules/*",
+        "*/SDKStatCaches.noindex/*",
+        "*/XCBuildData/*",
+        // Agent worktrees and Python environments are rebuildable copies.
+        "*/.claude/worktrees/*",
+        "*/.venv/*",
+        "*/.venv-*/*",
+        "*/__pycache__/*"
     ]
+
+    /// Bump when `defaultExclusions` gains patterns, so saved settings pick them up.
+    static let exclusionsVersion = 2
+
+    /// Files that hold credentials. Skipped automatically when the archive is not
+    /// password-protected, or always when the "always exclude secrets" option is on.
+    static let secretExclusions: [String] = [
+        "*/signing.env",
+        "*/.sentryclirc",
+        "*/.env",
+        "*/.env.local",
+        "*/.env.production",
+        "*/*.p12",
+        "*/*.mobileprovision",
+        "*/id_rsa",
+        "*/id_ed25519"
+    ]
+
+    /// zip -x patterns treat these as wildcards; a literal path must escape them.
+    static func escapeForZip(_ path: String) -> String {
+        var out = ""
+        for ch in path {
+            if "[]?*\\".contains(ch) { out.append("\\") }
+            out.append(ch)
+        }
+        return out
+    }
+
+    /// Final -x list: the user's list, plus the exact build folders the scan found
+    /// (precise, so a source folder that merely shares a name is never dropped),
+    /// plus secret patterns when required.
+    static func effectiveExclusions(
+        userPatterns: [String],
+        artifactPaths: [String],
+        excludeSecrets: Bool
+    ) -> [String] {
+        var result = userPatterns
+        result += artifactPaths.map { escapeForZip($0) + "/*" }
+        if excludeSecrets { result += secretExclusions }
+        var seen = Set<String>()
+        return result.filter { seen.insert($0).inserted }
+    }
 
     static func defaultZipFilename(folderSlug: String, timestamp: String) -> String {
         "\(folderSlug)_\(timestamp).zip"

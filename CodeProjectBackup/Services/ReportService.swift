@@ -36,6 +36,8 @@ enum ReportService {
         derivedDataSizeKB: Int,
         clean: CleanSummary,
         derivedRemoved: DerivedDataCleanSummary,
+        buildRemoved: BuildCleanSummary,
+        dryRun: Bool,
         archive: String?
     ) -> ReportFiles? {
         let dir = reportDir.expandingTilde()
@@ -63,17 +65,27 @@ enum ReportService {
             lines.append("Schemes: \(container.schemes.isEmpty ? "(none detected)" : container.schemes.joined(separator: "; "))")
             lines.append("")
         }
+        if !scan.buildFolders.isEmpty {
+            lines.append("Build folders")
+            for folder in scan.buildFolders {
+                let note = folder.skipReason.map { " [kept: \($0)]" } ?? ""
+                lines.append("  \(Format.human(folder.sizeKB))  \(folder.kind.rawValue)  \(folder.path)\(note)")
+            }
+            lines.append("")
+        }
         lines.append("----------------------------------------")
         lines.append("  Containers          : \(scan.containers.count)")
         lines.append("  Schemes seen        : \(scan.totalSchemes)")
-        lines.append("  .build dirs         : \(scan.buildFolders.count)")
-        lines.append("  .build size         : \(Format.human(scan.buildTotalKB))")
+        lines.append("  Build folders       : \(scan.buildFolders.count) (.build and Xcode build output)")
+        lines.append("  Build folder size   : \(Format.human(scan.buildTotalKB))")
+        lines.append("  Removable           : \(Format.human(scan.removableBuildKB))")
         lines.append("  DerivedData folders : \(derivedDataFolders.count)")
         lines.append("  DerivedData size    : \(Format.human(derivedDataSizeKB))")
-        lines.append("  Recoverable (combined) : \(Format.human(scan.buildTotalKB + derivedDataSizeKB))")
+        lines.append("  Recoverable (combined) : \(Format.human(scan.removableBuildKB + derivedDataSizeKB))")
         lines.append("  Cleaned schemes     : \(clean.success)")
         lines.append("  Clean failures      : \(clean.failed)")
         lines.append("  DerivedData removed : \(Format.human(derivedRemoved.removedKB))")
+        lines.append("  Build folders \(dryRun ? "would remove" : "removed") : \(buildRemoved.removed) (\(Format.human(buildRemoved.removedKB))), skipped \(buildRemoved.skipped)")
         if let archive {
             lines.append("  Archive             : \(archive)")
         }

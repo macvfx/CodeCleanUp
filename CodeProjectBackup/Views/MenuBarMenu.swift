@@ -29,6 +29,13 @@ struct MenuBarMenu: View {
             .disabled(runManager.isRunning)
 
             Button {
+                runManager.runPreviewCleanup(config: settings.makeRunConfiguration())
+            } label: {
+                Label("Preview Build Cleanup", systemImage: "eye")
+            }
+            .disabled(runManager.isRunning)
+
+            Button {
                 runManager.cancel()
             } label: {
                 Label("Cancel Run", systemImage: "stop.fill")

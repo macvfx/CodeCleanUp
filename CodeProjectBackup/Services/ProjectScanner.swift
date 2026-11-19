@@ -11,9 +11,27 @@ struct XcodeContainer {
     }
 }
 
+enum BuildFolderKind: String {
+    case swiftPM = "SwiftPM .build"
+    case xcodeBuild = "Xcode build output"
+}
+
 struct BuildFolder {
     let path: String
     let sizeKB: Int
+    var kind: BuildFolderKind = .swiftPM
+    /// Git tracks at least one file inside it, so it is source, not build output.
+    var hasTrackedFiles = false
+    /// Modified recently enough that a build may still be using it.
+    var isRecent = false
+
+    /// Safe to delete: regenerable output only.
+    var isRemovable: Bool { !hasTrackedFiles && !isRecent }
+    var skipReason: String? {
+        if hasTrackedFiles { return "contains git-tracked files" }
+        if isRecent { return "modified in the last hour" }
+        return nil
+    }
 }
 
 struct ScanResult {
@@ -21,6 +39,8 @@ struct ScanResult {
     let buildFolders: [BuildFolder]
 
     var buildTotalKB: Int { buildFolders.reduce(0) { $0 + $1.sizeKB } }
+    var removableBuildFolders: [BuildFolder] { buildFolders.filter(\.isRemovable) }
+    var removableBuildKB: Int { removableBuildFolders.reduce(0) { $0 + $1.sizeKB } }
     var totalSchemes: Int { containers.reduce(0) { $0 + $1.schemes.count } }
     var uniqueBaseNames: Set<String> { Set(containers.map(\.baseName)) }
 }
@@ -83,8 +103,19 @@ enum ProjectScanner {
                 continue
             }
 
+            if name == ".git" || name == "node_modules" {
+                enumerator.skipDescendants()
+                continue
+            }
+
             if name == ".build" {
-                buildFolders.append(BuildFolder(path: path, sizeKB: diskUsageKB(at: path)))
+                buildFolders.append(makeBuildFolder(path: path, kind: .swiftPM))
+                enumerator.skipDescendants()
+                continue
+            }
+
+            if path != root, isXcodeBuildRoot(path: path, fileManager: fileManager) {
+                buildFolders.append(makeBuildFolder(path: path, kind: .xcodeBuild))
                 enumerator.skipDescendants()
                 continue
             }
@@ -95,6 +126,55 @@ enum ProjectScanner {
             containers: preferred,
             buildFolders: buildFolders.sorted { $0.path < $1.path }
         )
+    }
+
+    /// A directory is Xcode build output (a DerivedData-style root) when it holds
+    /// one of these markers. Detected by content, not by name, so folders such as
+    /// `Build`, `BuildPortFix` or `build` are found, and a source folder that only
+    /// shares the name is not.
+    static let buildRootMarkers: [String] = [
+        "Build/Products",
+        "Build/Intermediates.noindex",
+        "CompilationCache.noindex",
+        "SwiftExplicitPrecompiledModules",
+        "SDKExplicitPrecompiledModules",
+        "SDKStatCaches.noindex",
+        "XCBuildData",
+        "Index.noindex",
+        "ModuleCache.noindex",
+        "ModuleCache"
+    ]
+
+    static func isXcodeBuildRoot(path: String, fileManager: FileManager) -> Bool {
+        for marker in buildRootMarkers {
+            var isDir: ObjCBool = false
+            let candidate = (path as NSString).appendingPathComponent(marker)
+            if fileManager.fileExists(atPath: candidate, isDirectory: &isDir), isDir.boolValue {
+                return true
+            }
+        }
+        return false
+    }
+
+    static func makeBuildFolder(path: String, kind: BuildFolderKind) -> BuildFolder {
+        var folder = BuildFolder(path: path, sizeKB: diskUsageKB(at: path), kind: kind)
+        folder.hasTrackedFiles = hasGitTrackedFiles(at: path)
+        if let modified = (try? FileManager.default.attributesOfItem(atPath: path))?[.modificationDate] as? Date {
+            folder.isRecent = Date().timeIntervalSince(modified) < 3600
+        }
+        return folder
+    }
+
+    /// True when git tracks any file under `path`. A folder outside any repo is untracked.
+    static func hasGitTrackedFiles(at path: String) -> Bool {
+        let parent = (path as NSString).deletingLastPathComponent
+        let name = (path as NSString).lastPathComponent
+        let result = ProcessRunner.run(
+            executable: "/usr/bin/git",
+            arguments: ["-C", parent, "ls-files", "--", name]
+        )
+        guard result.succeeded else { return false }
+        return !result.stdout.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     static func detectSchemes(kind: String, path: String) -> [String] {

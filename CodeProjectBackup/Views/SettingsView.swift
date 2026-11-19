@@ -33,6 +33,10 @@ struct SettingsView: View {
             Section("Cleanup") {
                 Toggle("Run xcodebuild clean", isOn: $settings.doClean)
                 Toggle("Remove matching DerivedData folders", isOn: $settings.doDerivedData)
+                Toggle("Remove .build and Xcode build-output folders in the search root", isOn: $settings.doRemoveBuildFolders)
+                Text("Found by content (Build/Products, CompilationCache, …), not by name. Folders with git-tracked files or changed in the last hour are skipped. Use Preview Cleanup first.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Section("Archive") {
@@ -48,6 +52,13 @@ struct SettingsView: View {
                     }
                 }
                 .pickerStyle(.segmented)
+
+                Toggle("Always leave credential files out of the archive", isOn: $settings.excludeSecretsAlways)
+                if settings.passwordMode == .none {
+                    Text("Password mode is None, so credential files (signing.env, .sentryclirc, .env, .p12 …) are left out automatically.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
 
                 switch settings.passwordMode {
                 case .keychain:
