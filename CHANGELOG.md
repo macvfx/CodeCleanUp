@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.1 (build 3)
 
 ### Features
 - Archive leaves out Archiware P5 container block files (`*.p5b`). They are large and
