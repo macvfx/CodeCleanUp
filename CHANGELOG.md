@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2.0 (build 4)
+## 1.2.0 (builds 4 and 5)
 
 ### Features
 - **Preview summary window.** Preview now ends in a window that says what a run would do:
@@ -19,6 +19,20 @@
   Updates in the menu. It includes pre-releases, since every release so far is one.
 
 ### Fixes
+- **Warnings were invisible.** A run could finish "with warnings" and give no way to see
+  them. Causes: the failure detail existed only in the Run Log window's memory (lost when the
+  app restarted or the next run cleared it); `runs.log` marked the run OK with no failure
+  count; the report said "Clean failures: 16" without saying which; and the failure reason
+  was just the last line of stderr, often empty. Now: every run's full log is saved
+  (`~/Library/Logs/CodeProjectBackup/runs/`, newest 40 kept); each problem is collected as a
+  warning with a readable cause and listed at the end of the log, at the bottom of the
+  report, and at the top of the Run Log window; the menu banner shows the count and the first
+  warning with a View button; `runs.log` records WARN and the count; the Run Log window can
+  switch between saved runs and show the file in Finder.
+- **The 16 warnings in a test run** were all one cause. The scan counted the generated
+  `.swiftpm/xcode/package.xcworkspace` inside Swift packages as a project, and
+  `xcodebuild clean` on it always fails ("Building a Swift package requires a destination").
+  Scanning now skips `.swiftpm` folders. Swift packages are cleaned by removing `.build`.
 - Scan and Preview no longer run `xcodebuild -list` on every project. It took minutes for 60
   projects and only `xcodebuild clean` needs the schemes, so it now runs only when clean is
   turned on. Scan and Preview on a 60-project folder take about 8 seconds. The reports say

@@ -13,7 +13,7 @@ struct MenuBarMenu: View {
             footer
         }
         .padding(14)
-        .frame(width: 340)
+        .frame(width: 380)
     }
 
     // MARK: - Header
@@ -124,11 +124,14 @@ struct MenuBarMenu: View {
                 : nil
             return Status(title: "Last \(word): \(when)", detail: detail, tint: .green, action: action)
         case .warnings:
-            return Status(title: "Last \(word) had warnings: \(when)", detail: detail, tint: .orange,
-                          action: ("View Log", { RunLogWindowController.shared.show() }))
+            let count = runManager.lastWarnings.count
+            let first = runManager.lastWarnings.first.map { count > 1 ? "\($0) (+\(count - 1) more)" : $0 } ?? detail
+            return Status(title: "Last \(word) had \(count) warning\(count == 1 ? "" : "s"): \(when)", detail: first, tint: .orange,
+                          action: ("View", { RunLogWindowController.shared.show() }))
         case .error:
-            return Status(title: "Last \(word) failed: \(when)", detail: detail, tint: .red,
-                          action: ("View Log", { RunLogWindowController.shared.show() }))
+            let reason = runManager.lastWarnings.first ?? detail
+            return Status(title: "Last \(word) failed: \(when)", detail: reason, tint: .red,
+                          action: ("View", { RunLogWindowController.shared.show() }))
         case .cancelled:
             return Status(title: "Last \(word) was cancelled: \(when)", detail: detail, tint: .orange, action: nil)
         }
@@ -185,36 +188,63 @@ struct MenuBarMenu: View {
 
     // MARK: - Footer
 
+    /// Settings, Help and Updates are the larger row; the folders and log are the
+    /// quiet row. Quit sits on its own at the right.
     private var footer: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
             Divider()
-            HStack(spacing: 14) {
-                footerLink("Run Log", systemImage: "doc.plaintext") { RunLogWindowController.shared.show() }
-                footerLink("Reports", systemImage: "folder") { openFolder(settings.resolvedReportDir) }
-                footerLink("Archives", systemImage: "archivebox") { openFolder(archiveFolder) }
-                footerLink("Settings", systemImage: "gearshape") { SettingsWindowController.shared.show() }
-            }
-            HStack(spacing: 14) {
-                footerLink("Help", systemImage: "questionmark.circle") { HelpWindowController.shared.show() }
-                footerLink("Updates", systemImage: "arrow.down.circle") { onCheckForUpdates() }
-                Spacer()
+            HStack(alignment: .center, spacing: 12) {
+                Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 12) {
+                    GridRow {
+                        mainLink("Settings", systemImage: "gearshape") { SettingsWindowController.shared.show() }
+                        mainLink("Help", systemImage: "questionmark.circle") { HelpWindowController.shared.show() }
+                        mainLink("Updates", systemImage: "arrow.down.circle") { onCheckForUpdates() }
+                    }
+                    GridRow {
+                        quietLink("Run Log", systemImage: "doc.plaintext") { RunLogWindowController.shared.show() }
+                        quietLink("Reports", systemImage: "folder") { openFolder(settings.resolvedReportDir) }
+                        quietLink("Archives", systemImage: "archivebox") { openFolder(archiveFolder) }
+                    }
+                }
+                Spacer(minLength: 8)
+                Divider().frame(height: 46)
                 Button {
                     NSApplication.shared.terminate(nil)
                 } label: {
-                    Label("Quit", systemImage: "power")
-                        .font(.caption)
-                        .foregroundStyle(.red.opacity(0.8))
+                    VStack(spacing: 4) {
+                        Image(systemName: "power")
+                            .font(.title2)
+                        Text("Quit")
+                            .font(.callout.weight(.medium))
+                    }
+                    .foregroundStyle(.red.opacity(0.85))
+                    .frame(width: 52)
                 }
                 .buttonStyle(.plain)
+                .help("Quit Code Project Backup")
             }
         }
     }
 
-    private func footerLink(_ title: String, systemImage: String, action: @escaping () -> Void) -> some View {
+    private func mainLink(_ title: String, systemImage: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: systemImage)
+                .font(.subheadline.weight(.medium))
+                .imageScale(.large)
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+                .fixedSize()
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func quietLink(_ title: String, systemImage: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Label(title, systemImage: systemImage)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .fixedSize()
         }
         .buttonStyle(.plain)
     }

@@ -95,6 +95,16 @@ Settings that are off (build folder removal, the zip) are noted, so the figures 
 *would* do if they were on. **Copy Summary** puts it on the clipboard, **Full Log** opens the
 whole run log, and **Run Backup Now** runs it for real.
 
+### Logs and warnings
+
+A run can finish with warnings: things that went wrong without stopping it, such as a
+folder that could not be removed. The menu banner turns orange, shows how many and the first
+one, and **View** opens the Run Log with every warning listed at the top. Each run's full log is
+saved in `~/Library/Logs/CodeProjectBackup/runs/` (the newest 40 are kept); the Run Log
+window's clock menu switches between them and **Show in Finder** reveals the file.
+`~/Library/Logs/CodeProjectBackup/runs.log` has one line per run, marked OK, WARN or ERROR, and
+each report lists its warnings at the bottom.
+
 ### Help and updates
 
 **Help** in the footer explains each button, the cleanup rules, the archive, the schedule and

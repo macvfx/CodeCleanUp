@@ -87,7 +87,9 @@ struct HelpView: View {
                     "If a scan or cleanup fails on a protected folder, give the app Full Disk Access in System Settings, Privacy & Security.",
                     "If the archive is skipped, the log says why: usually no saved password for the chosen password mode.",
                     "If a build folder you expected is listed as kept, the reason is shown beside it: tracked by git, or changed in the last hour.",
-                    "The run log file is in ~/Library/Logs/CodeProjectBackup/runs.log.",
+                    "Warnings are things that went wrong without stopping the run, such as a scheme that would not clean or a folder that could not be removed. The menu shows how many and the first one, and View opens the Run Log with all of them listed at the top.",
+                    "Every run's complete log is saved, newest 40 kept, in ~/Library/Logs/CodeProjectBackup/runs. The Run Log window's clock menu switches between them and Show in Finder reveals the file. ~/Library/Logs/CodeProjectBackup/runs.log has one line per run, marked OK, WARN or ERROR.",
+                    "Each report (.txt) lists the warnings of its run at the bottom.",
                 ]
             }
         }

@@ -1,5 +1,23 @@
 import Foundation
 
+/// Collects a run's log lines from the worker thread.
+final class LogSink: @unchecked Sendable {
+    private let lock = NSLock()
+    private var lines: [String] = []
+
+    func append(_ line: String) {
+        lock.lock()
+        lines.append(line)
+        lock.unlock()
+    }
+
+    var text: String {
+        lock.lock()
+        defer { lock.unlock() }
+        return lines.joined(separator: "\n") + "\n"
+    }
+}
+
 enum RunKind {
     case backup, scan, preview
 }
@@ -22,6 +40,10 @@ final class RunManager: ObservableObject {
     @Published var lastRunKind: RunKind = .backup
     @Published var lastOutcome: RunOutcome = .ok
     @Published var lastPreview: PreviewSummary?
+    /// Everything that went wrong without stopping the run, one line each.
+    @Published var lastWarnings: [String] = []
+    /// Where the last run's complete log was saved.
+    @Published var lastLogPath: String?
 
     private var pipeline: PipelineRunner?
 
@@ -38,14 +60,26 @@ final class RunManager: ObservableObject {
             DispatchQueue.main.async { self?.stepText = text }
         }
         pipeline = runner
+        let sink = LogSink()
+        let startedAt = Date()
 
         Task.detached(priority: .userInitiated) { [weak runner] in
             guard let runner else { return }
             let summary = runner.run { [weak self] message in
+                sink.append(message)
                 DispatchQueue.main.async {
                     self?.appendLog(message)
                 }
             }
+            // Keep the whole log on disk: the window only holds the current session's
+            // last run, and the next run clears it.
+            let kindName: String
+            switch kind {
+            case .backup: kindName = "backup"
+            case .scan: kindName = "scan"
+            case .preview: kindName = "preview"
+            }
+            let savedPath = RunLogService.saveRunLog(text: sink.text, kind: kindName, date: startedAt)
             await MainActor.run { [weak self] in
                 guard let self else { return }
                 self.pipeline = nil
@@ -55,6 +89,8 @@ final class RunManager: ObservableObject {
                 self.lastRunDate = Date()
                 self.lastRunKind = kind
                 self.lastOutcome = runner.outcome
+                self.lastWarnings = runner.warnings
+                self.lastLogPath = savedPath
                 if kind == .preview, let preview = runner.previewSummary {
                     self.lastPreview = preview
                     PreviewWindowController.shared.show()
@@ -111,6 +147,9 @@ final class PipelineRunner {
     var onStep: ((String) -> Void)?
     private(set) var previewSummary: PreviewSummary?
     private(set) var outcome: RunOutcome = .ok
+    /// Problems that did not stop the run (a scheme that would not clean, a folder that
+    /// could not be removed). Shown in the menu, the run log and the report.
+    private(set) var warnings: [String] = []
 
     init(config: RunConfiguration) {
         self.config = config
@@ -176,6 +215,7 @@ final class PipelineRunner {
             log("==============================================")
             onStep?("Running xcodebuild clean…")
             clean = CleanupService.runXcodeClean(containers: scan.containers, log: log)
+            warnings += clean.failures
             log("  Cleaned: \(clean.success), Failed: \(clean.failed), Skipped: \(clean.skipped)")
             log("")
         } else {
@@ -190,6 +230,7 @@ final class PipelineRunner {
             log("==============================================")
             onStep?("Removing DerivedData…")
             derivedRemoved = CleanupService.removeDerivedData(paths: derivedFolders, log: log)
+            warnings += derivedRemoved.failures
             log("  Removed: \(Format.human(derivedRemoved.removedKB)), Failed: \(derivedRemoved.failed)")
             log("")
         } else {
@@ -210,6 +251,7 @@ final class PipelineRunner {
                 dryRun: config.dryRunCleanup,
                 log: log
             )
+            warnings += buildRemoved.failures
             let verb = config.dryRunCleanup ? "Would remove" : "Removed"
             log("  \(verb): \(buildRemoved.removed) folder(s), \(Format.human(buildRemoved.removedKB)); skipped \(buildRemoved.skipped); failed \(buildRemoved.failed)")
             log("")
@@ -252,6 +294,7 @@ final class PipelineRunner {
                 let modeLabel = config.passwordMode == .keychain ? "Keychain" : "Custom"
                 log("✗ No zip password available (\(modeLabel) mode). Open Settings and save a password — archive skipped.")
                 archiveFailed = true
+                warnings.append("The archive was skipped: no zip password is saved for \(modeLabel) mode.")
             } else {
                 log("Archiving \(searchRoot) to \(zipPath)...")
                 let handle = ProcessHandle()
@@ -267,11 +310,22 @@ final class PipelineRunner {
                     archivePath = zipPath
                 } else {
                     archiveFailed = true
+                    warnings.append("The zip archive could not be created. See the log above for zip's message.")
                 }
                 activeHandle = nil
             }
         } else {
             log("Archive: skipped.")
+        }
+
+        if !warnings.isEmpty {
+            log("")
+            log("==============================================")
+            log("  WARNINGS (\(warnings.count))")
+            log("==============================================")
+            for (index, warning) in warnings.enumerated() {
+                log("  \(index + 1). \(warning)")
+            }
         }
 
         let reportFiles = ReportService.write(
@@ -287,6 +341,7 @@ final class PipelineRunner {
             derivedRemoved: derivedRemoved,
             buildRemoved: buildRemoved,
             dryRun: config.dryRunCleanup,
+            warnings: warnings,
             archive: archivePath
         )
         let reportOK = reportFiles != nil
@@ -411,8 +466,10 @@ final class PipelineRunner {
         let status: String
         if cancelled {
             status = "CANCELLED"
-        } else if !reportOK {
+        } else if !reportOK || archiveFailed {
             status = "ERROR"
+        } else if !warnings.isEmpty {
+            status = "WARN"
         } else {
             status = "OK"
         }
@@ -466,6 +523,9 @@ final class PipelineRunner {
             return "Cancelled at \(timestamp) — \(scan.containers.count) project(s) scanned"
         }
         var parts = ["\(scan.containers.count) project(s)", "\(clean.success) cleaned"]
+        if !warnings.isEmpty {
+            parts.append("\(warnings.count) warning(s)")
+        }
         if let archivePath {
             let size = ProjectScanner.diskUsageKB(at: archivePath)
             parts.append("archive \(Format.human(size))")

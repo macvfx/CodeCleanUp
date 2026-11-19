@@ -106,7 +106,9 @@ enum ProjectScanner {
                 continue
             }
 
-            if name == ".git" || name == "node_modules" {
+            // .swiftpm holds a generated package.xcworkspace for Swift packages. It is not
+            // a project: xcodebuild clean on it fails ("requires a destination").
+            if name == ".git" || name == "node_modules" || name == ".swiftpm" {
                 enumerator.skipDescendants()
                 continue
             }

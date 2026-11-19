@@ -38,6 +38,7 @@ enum ReportService {
         derivedRemoved: DerivedDataCleanSummary,
         buildRemoved: BuildCleanSummary,
         dryRun: Bool,
+        warnings: [String] = [],
         archive: String?
     ) -> ReportFiles? {
         let dir = reportDir.expandingTilde()
@@ -91,6 +92,13 @@ enum ReportService {
         }
         lines.append("  Scanned             : \(Date())")
         lines.append("----------------------------------------")
+        if !warnings.isEmpty {
+            lines.append("")
+            lines.append("Warnings (\(warnings.count))")
+            for (index, warning) in warnings.enumerated() {
+                lines.append("  \(index + 1). \(warning)")
+            }
+        }
 
         var csvLines: [String] = []
         csvLines.append("Type,Container,Parent_Folder,Scheme_Count,Schemes")

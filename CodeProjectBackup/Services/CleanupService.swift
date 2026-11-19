@@ -4,11 +4,14 @@ struct CleanSummary {
     var success = 0
     var failed = 0
     var skipped = 0
+    /// One readable line per failure, kept for the warnings list and the saved log.
+    var failures: [String] = []
 }
 
 struct DerivedDataCleanSummary {
     var removedKB = 0
     var failed = 0
+    var failures: [String] = []
 }
 
 struct BuildCleanSummary {
@@ -16,6 +19,7 @@ struct BuildCleanSummary {
     var removed = 0
     var skipped = 0
     var failed = 0
+    var failures: [String] = []
 }
 
 enum CleanupService {
@@ -34,6 +38,7 @@ enum CleanupService {
             guard folder.path.hasPrefix(root + "/"), !folder.path.contains("/.git/") else {
                 log("  ✗ Refused (outside search root): \(folder.path)")
                 summary.failed += 1
+                summary.failures.append("Refused to remove a folder outside the search root: \(folder.path)")
                 continue
             }
             if let reason = folder.skipReason {
@@ -55,6 +60,7 @@ enum CleanupService {
             } catch {
                 summary.failed += 1
                 log("  ✗ Failed to remove \(folder.path): \(error.localizedDescription)")
+                summary.failures.append("Could not remove build folder \(folder.path): \(error.localizedDescription)")
             }
         }
         return summary
@@ -80,16 +86,32 @@ enum CleanupService {
                     log("  ✓ \(scheme)")
                 } else {
                     summary.failed += 1
-                    let detail = result.stderr
-                        .trimmingCharacters(in: .whitespacesAndNewlines)
-                        .split(separator: "\n")
-                        .last
-                        .map(String.init) ?? ""
-                    log("  ✗ \(scheme): \(detail.prefix(200))")
+                    let reason = failureReason(result)
+                    log("  ✗ \(scheme): \(reason)")
+                    let name = (container.path as NSString).lastPathComponent
+                    summary.failures.append("xcodebuild clean failed for \(name), scheme \(scheme): \(reason)")
                 }
             }
         }
         return summary
+    }
+
+    /// Why an xcodebuild run failed, in one line. xcodebuild reports errors on stdout
+    /// as often as on stderr, so look at both, and never return an empty reason.
+    static func failureReason(_ result: ProcessResult) -> String {
+        func lines(_ text: String) -> [String] {
+            text.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+        }
+        let errLines = lines(result.stderr)
+        let outLines = lines(result.stdout)
+        let errors = (errLines + outLines).filter { $0.contains("error:") || $0.lowercased().hasPrefix("xcodebuild: error") }
+        if !errors.isEmpty {
+            return String(errors.prefix(2).joined(separator: " | ").prefix(300))
+        }
+        if let last = errLines.last ?? outLines.last {
+            return String(last.prefix(300))
+        }
+        return "exit status \(result.status) with no message"
     }
 
     static func removeDerivedData(paths: [String], log: (String) -> Void) -> DerivedDataCleanSummary {
@@ -104,6 +126,7 @@ enum CleanupService {
             } catch {
                 summary.failed += 1
                 log("  ✗ Failed to remove \(path): \(error.localizedDescription)")
+                summary.failures.append("Could not remove DerivedData folder \(path): \(error.localizedDescription)")
             }
         }
         return summary
