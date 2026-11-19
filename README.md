@@ -26,7 +26,7 @@ with no terminal needed.
   the archive is unencrypted (or always, if set). Password-protected (or unencrypted) `zip` with the same cache/build
   excludes as the script (`.build`, `DerivedData`, `Pods`, `Carthage/Build`,
   `.swiftpm`, `SourcePackages`, `node_modules`, `.DS_Store`, `__MACOSX`, `.app`,
-  `.dSYM`, build products/intermediates, …)
+  `.dSYM`, build products/intermediates, Archiware P5 container blocks `*.p5b`, …)
 - **Password modes**
   - `Keychain` — saves to (and reads) the `zip_password` Keychain item, the same
     account name the shell script uses. Create it via **Save to Keychain** in
@@ -56,7 +56,7 @@ Open Settings from the menu bar icon. All settings persist in `UserDefaults`.
 | Password mode | Keychain | |
 | Schedule | Manual | Manual / Hourly / Daily / Weekly |
 | Remove build folders | off | preview first |
-| Archive exclusions | 27 patterns | editable, one per line |
+| Archive exclusions | 28 patterns | editable, one per line |
 | Pruned scan paths | `~/Library /System /Volumes /private /usr /opt` | editable |
 
 ## Running the pipeline

@@ -31,11 +31,13 @@ enum ArchiveService {
         "*/.claude/worktrees/*",
         "*/.venv/*",
         "*/.venv-*/*",
-        "*/__pycache__/*"
+        "*/__pycache__/*",
+        // Archiware P5 container blocks: large, and regenerable test data.
+        "*.p5b"
     ]
 
     /// Bump when `defaultExclusions` gains patterns, so saved settings pick them up.
-    static let exclusionsVersion = 2
+    static let exclusionsVersion = 3
 
     /// Files that hold credentials. Skipped automatically when the archive is not
     /// password-protected, or always when the "always exclude secrets" option is on.

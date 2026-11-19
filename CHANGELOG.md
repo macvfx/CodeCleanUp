@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Features
+- Archive leaves out Archiware P5 container block files (`*.p5b`). They are large and
+  regenerable, and a test setup can hold several hundred MB of them. Saved exclusion lists
+  pick the pattern up once; delete the line in Settings to back them up.
+
 ## 1.1.0 (build 2)
 
 ### Features
