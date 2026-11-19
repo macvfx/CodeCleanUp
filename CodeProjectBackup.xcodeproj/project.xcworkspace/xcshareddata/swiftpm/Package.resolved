@@ -1,0 +1,15 @@
+{
+  "originHash" : "cda1f0182fd8445fa01ab2b637fc3f80a480fefdc0125aa834c457e6a2e6b8d1",
+  "pins" : [
+    {
+      "identity" : "githubupdatechecker",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/macvfx/GitHubUpdateChecker",
+      "state" : {
+        "revision" : "ee038ede25d0252d5208480838ea23c1c7c54b52",
+        "version" : "1.0.2"
+      }
+    }
+  ],
+  "version" : 3
+}

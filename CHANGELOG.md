@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.2.0 (build 4)
+
+### Features
+- **Preview summary window.** Preview now ends in a window that says what a run would do:
+  projects scanned, build folders it would remove (count, size, and which are kept and why),
+  DerivedData it would remove, how many files the zip would hold and its size before
+  compression, how many files the exclusions leave out grouped by rule, and warnings. Before,
+  Preview only wrote to the Run Log, which it did not open, and never estimated the zip.
+  The zip estimate comes from a dry run of the same `zip` command (`zip -sf`).
+- **New menu.** The plain system menu is now a window with a status banner, a blue Back Up Now,
+  Preview and Scan buttons, an orange Cancel while running, and a footer of Run Log, Reports,
+  Archives, Settings, Help, Updates and Quit. The banner shows the current step while running
+  and the last run's result afterwards.
+- **Help window** explaining each button, cleanup safety, the archive, schedules and
+  troubleshooting.
+- **Update checking** through the shared GitHub update checker, once a day on launch and from
+  Updates in the menu. It includes pre-releases, since every release so far is one.
+
+### Fixes
+- Scan and Preview no longer run `xcodebuild -list` on every project. It took minutes for 60
+  projects and only `xcodebuild clean` needs the schemes, so it now runs only when clean is
+  turned on. Scan and Preview on a 60-project folder take about 8 seconds. The reports say
+  "(not checked)" for schemes in that case.
+- The Run Log is now opened by the app rather than by a SwiftUI window scene, so Preview and
+  the menu can open it reliably.
+
 ## 1.1.1 (build 3)
 
 ### Features

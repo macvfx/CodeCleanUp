@@ -1,3 +1,4 @@
+import GitHubUpdateChecker
 import SwiftUI
 
 @main
@@ -6,16 +7,15 @@ struct CodeProjectBackupApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            MenuBarMenu(settings: .shared, runManager: .shared)
+            MenuBarMenu(
+                settings: .shared,
+                runManager: .shared,
+                onCheckForUpdates: { appDelegate.updater.checkNow() }
+            )
         } label: {
             StatusIconView(runManager: .shared)
         }
-        .menuBarExtraStyle(.menu)
-
-        Window("Run Log", id: "runLog") {
-            RunLogView(runManager: .shared)
-        }
-        .windowResizability(.contentSize)
+        .menuBarExtraStyle(.window)
     }
 }
 
@@ -30,9 +30,13 @@ struct StatusIconView: View {
     }
 }
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    let updater = UpdateCheckerViewModel()
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         SchedulerService.shared.start()
+        updater.checkOnLaunch()
         if CommandLine.arguments.contains("--open-settings") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 SettingsWindowController.shared.show()

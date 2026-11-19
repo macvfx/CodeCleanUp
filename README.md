@@ -62,14 +62,44 @@ Open Settings from the menu bar icon. All settings persist in `UserDefaults`.
 ## Running the pipeline
 
 `Run Backup Now` (menu or Settings) runs: scan → clean → DerivedData removal →
-archive → reports. `Run Scan Only` skips all destructive/archive steps and just
+archive → reports. `Scan` skips all destructive/archive steps and just
 writes reports. `Cancel` stops between steps (and terminates a running `zip`).
 
 ## Menu & launch options
 
-The menu bar icon (`terminal` symbol) exposes: Run Backup Now, Run Scan Only,
-Cancel Run, Run Log, Settings…, Open Reports Folder, Open Archives Folder, and Quit.
-Settings opens in its own window (AppKit-managed so it always comes to front).
+The menu bar icon opens a small window:
+
+- A status banner: what the run is doing now, or how the last one went (green is fine, orange
+  has warnings or was cancelled, red failed, with a link to the log).
+- **Back Up Now** (blue) runs everything turned on in Settings.
+- **Preview** works out what a run would remove and zip, and opens a summary window. It
+  changes nothing.
+- **Scan** finds projects and build output and writes the reports. It deletes and zips nothing.
+- **Cancel** (orange) replaces them while a run is going.
+- Footer links: Run Log, Reports, Archives, Settings, Help, Updates, Quit.
+
+### Preview
+
+Preview scans the folder, lists the build folders a run would remove, and does a dry run of
+the zip. The summary window shows:
+
+- how many Xcode projects were scanned and how many build folders were found;
+- what would be removed (count and size), what would be kept and why, and the DerivedData
+  that would go;
+- what the zip would hold: the number of files and the size before compression (the zip
+  itself will be smaller), and whether it would be encrypted;
+- how many files the exclusions leave out, grouped by rule;
+- warnings, such as a missing password or a very large sparse file.
+
+Settings that are off (build folder removal, the zip) are noted, so the figures say what a run
+*would* do if they were on. **Copy Summary** puts it on the clipboard, **Full Log** opens the
+whole run log, and **Run Backup Now** runs it for real.
+
+### Help and updates
+
+**Help** in the footer explains each button, the cleanup rules, the archive, the schedule and
+common problems. **Updates** checks GitHub for a newer release, including pre-releases, and the
+app checks once a day on launch.
 
 Launch with `--open-settings` to open the Settings window on startup:
 

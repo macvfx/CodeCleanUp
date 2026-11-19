@@ -50,6 +50,14 @@ struct RunConfiguration {
     var scheduleMode: ScheduleMode
     /// List what the build-folder step would remove, without deleting anything.
     var dryRunCleanup = false
+    /// Also dry-run the archive (what would be zipped) and build a PreviewSummary.
+    var previewArchive = false
+    /// Whether "Create zip archive" is on in Settings, for the preview's notes.
+    var archiveToggleOn = true
+    /// Whether build-folder removal is on in Settings, for the preview's notes.
+    var removeToggleOn = false
+    /// Whether DerivedData removal is on in Settings, for the preview's notes.
+    var derivedToggleOn = true
 }
 
 final class SettingsStore: ObservableObject {

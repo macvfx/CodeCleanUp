@@ -62,7 +62,7 @@ enum ReportService {
             lines.append("Type:   \(container.kind)")
             lines.append("Path:   \(container.path)")
             lines.append("Parent: \(container.parent)")
-            lines.append("Schemes: \(container.schemes.isEmpty ? "(none detected)" : container.schemes.joined(separator: "; "))")
+            lines.append("Schemes: \(!container.schemesChecked ? "(not checked)" : container.schemes.isEmpty ? "(none detected)" : container.schemes.joined(separator: "; "))")
             lines.append("")
         }
         if !scan.buildFolders.isEmpty {

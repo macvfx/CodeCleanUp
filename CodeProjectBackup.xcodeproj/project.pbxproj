@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0614E906AFA039E8D812F0B2 /* RunLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C24783D78D55F02294FDFCDC /* RunLogView.swift */; };
+		06CB8121F288035D705FAD84 /* PreviewSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FE13B1DF468AA3440FAF609 /* PreviewSummaryView.swift */; };
 		0B94A36E6D3D93518D2ACD9D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 23847DCA7BCC6AE48E6D9F27 /* Assets.xcassets */; };
 		23EC7B729C05FC26F8B8BEF4 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FA5D59F6048B3892D9DB3F1 /* KeychainService.swift */; };
 		24E536D59FBE7B4D0E98A886 /* ProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B96EE5F7D5AB1067B7AF75D /* ProcessRunner.swift */; };
@@ -15,6 +16,7 @@
 		627BF02997C691F2C4E5A926 /* ReportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3D67B1003710E06DD302F82 /* ReportService.swift */; };
 		76E097A536C87CA4B8AB4688 /* ProjectScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6426FE05F6B46F482DFA6E6 /* ProjectScanner.swift */; };
 		7D9D9C59FD950DB9A2C4AC8D /* CleanupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23CE96555C89F9BEB81656F1 /* CleanupService.swift */; };
+		869D8508B4401E3DD7FB7BDE /* GitHubUpdateChecker in Frameworks */ = {isa = PBXBuildFile; productRef = CCC45544E4087E7EF1AFCE55 /* GitHubUpdateChecker */; };
 		A0E9EEA5CEF1FE8BA41C008D /* RunLogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EF202E96A84B8B8295018B6 /* RunLogService.swift */; };
 		A7BCCE7FFB8125ECD34FDDE9 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E662D12DE09B6CB26436252 /* SettingsWindowController.swift */; };
 		A9E0E0AB5C15D86266026AD3 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91C74A56CA6AB5992001F0A6 /* SettingsStore.swift */; };
@@ -24,6 +26,9 @@
 		BFE114F79B8A0169FAB6993F /* MenuBarMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8594F2DC2D2663A2E103AA25 /* MenuBarMenu.swift */; };
 		C86931344A8ECB329F7CC1D3 /* Format.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BAE2F1560A3EE100C5A77F /* Format.swift */; };
 		CF17CE2808B1332A05DF5D15 /* CodeProjectBackupApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98C0B7474852FAC64CBEE2B9 /* CodeProjectBackupApp.swift */; };
+		D1088C01192FE30D18C55A57 /* PreviewSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 555DF115117815BC470ABF62 /* PreviewSummary.swift */; };
+		D14D20C69C178FF3C0581A66 /* GitHubUpdateConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = ACE38EC74D06AF3D622032AD /* GitHubUpdateConfig.plist */; };
+		DB37B9CC14A962B4D99BA0DE /* HelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6455054E9F843F815A8FC64F /* HelpView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +37,9 @@
 		23CE96555C89F9BEB81656F1 /* CleanupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanupService.swift; sourceTree = "<group>"; };
 		3EF202E96A84B8B8295018B6 /* RunLogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunLogService.swift; sourceTree = "<group>"; };
 		525A547A1450B7AEDB672D7B /* SchedulerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchedulerService.swift; sourceTree = "<group>"; };
+		555DF115117815BC470ABF62 /* PreviewSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSummary.swift; sourceTree = "<group>"; };
+		5FE13B1DF468AA3440FAF609 /* PreviewSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSummaryView.swift; sourceTree = "<group>"; };
+		6455054E9F843F815A8FC64F /* HelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpView.swift; sourceTree = "<group>"; };
 		721E8CA74022605892A10C47 /* CodeProjectBackup.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CodeProjectBackup.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		77BAE2F1560A3EE100C5A77F /* Format.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Format.swift; sourceTree = "<group>"; };
 		8594F2DC2D2663A2E103AA25 /* MenuBarMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarMenu.swift; sourceTree = "<group>"; };
@@ -42,10 +50,22 @@
 		91C74A56CA6AB5992001F0A6 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
 		97D8C965159DEA2E2BDE9BF7 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		98C0B7474852FAC64CBEE2B9 /* CodeProjectBackupApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeProjectBackupApp.swift; sourceTree = "<group>"; };
+		ACE38EC74D06AF3D622032AD /* GitHubUpdateConfig.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = GitHubUpdateConfig.plist; sourceTree = "<group>"; };
 		B3D67B1003710E06DD302F82 /* ReportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportService.swift; sourceTree = "<group>"; };
 		C24783D78D55F02294FDFCDC /* RunLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunLogView.swift; sourceTree = "<group>"; };
 		F6426FE05F6B46F482DFA6E6 /* ProjectScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectScanner.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8FC4CEE4D76DC94D0DEAF985 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				869D8508B4401E3DD7FB7BDE /* GitHubUpdateChecker in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		0E387B41121472AFBFE76DE2 /* CodeProjectBackup */ = {
@@ -54,6 +74,7 @@
 				23847DCA7BCC6AE48E6D9F27 /* Assets.xcassets */,
 				98C0B7474852FAC64CBEE2B9 /* CodeProjectBackupApp.swift */,
 				4809CAD7EE167B99EB35C946 /* Models */,
+				695A9955D41B89CE1D2853C4 /* Resources */,
 				F5525945F38A9A7244688C55 /* Services */,
 				992B45C9009AE3A3CBC0DCAC /* Views */,
 			);
@@ -71,15 +92,26 @@
 		4809CAD7EE167B99EB35C946 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				555DF115117815BC470ABF62 /* PreviewSummary.swift */,
 				91C74A56CA6AB5992001F0A6 /* SettingsStore.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
 		};
+		695A9955D41B89CE1D2853C4 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				ACE38EC74D06AF3D622032AD /* GitHubUpdateConfig.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		992B45C9009AE3A3CBC0DCAC /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				6455054E9F843F815A8FC64F /* HelpView.swift */,
 				8594F2DC2D2663A2E103AA25 /* MenuBarMenu.swift */,
+				5FE13B1DF468AA3440FAF609 /* PreviewSummaryView.swift */,
 				C24783D78D55F02294FDFCDC /* RunLogView.swift */,
 				97D8C965159DEA2E2BDE9BF7 /* SettingsView.swift */,
 				8E662D12DE09B6CB26436252 /* SettingsWindowController.swift */,
@@ -121,6 +153,7 @@
 			buildPhases = (
 				85518E8630E93C9A91D8118C /* Sources */,
 				B193DC0E393DA86727A0F7FA /* Resources */,
+				8FC4CEE4D76DC94D0DEAF985 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -128,6 +161,7 @@
 			);
 			name = CodeProjectBackup;
 			packageProductDependencies = (
+				CCC45544E4087E7EF1AFCE55 /* GitHubUpdateChecker */,
 			);
 			productName = CodeProjectBackup;
 			productReference = 721E8CA74022605892A10C47 /* CodeProjectBackup.app */;
@@ -156,6 +190,9 @@
 			);
 			mainGroup = 183DD2D2EE9304DE8C667671;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				966ABF0D77B0F618BA9381FC /* XCRemoteSwiftPackageReference "GitHubUpdateChecker" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = FA510C6D94B0E58E785E1F74 /* Products */;
 			projectDirPath = "";
@@ -172,6 +209,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0B94A36E6D3D93518D2ACD9D /* Assets.xcassets in Resources */,
+				D14D20C69C178FF3C0581A66 /* GitHubUpdateConfig.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -186,8 +224,11 @@
 				7D9D9C59FD950DB9A2C4AC8D /* CleanupService.swift in Sources */,
 				CF17CE2808B1332A05DF5D15 /* CodeProjectBackupApp.swift in Sources */,
 				C86931344A8ECB329F7CC1D3 /* Format.swift in Sources */,
+				DB37B9CC14A962B4D99BA0DE /* HelpView.swift in Sources */,
 				23EC7B729C05FC26F8B8BEF4 /* KeychainService.swift in Sources */,
 				BFE114F79B8A0169FAB6993F /* MenuBarMenu.swift in Sources */,
+				D1088C01192FE30D18C55A57 /* PreviewSummary.swift in Sources */,
+				06CB8121F288035D705FAD84 /* PreviewSummaryView.swift in Sources */,
 				24E536D59FBE7B4D0E98A886 /* ProcessRunner.swift in Sources */,
 				76E097A536C87CA4B8AB4688 /* ProjectScanner.swift in Sources */,
 				627BF02997C691F2C4E5A926 /* ReportService.swift in Sources */,
@@ -385,6 +426,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		966ABF0D77B0F618BA9381FC /* XCRemoteSwiftPackageReference "GitHubUpdateChecker" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/macvfx/GitHubUpdateChecker";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		CCC45544E4087E7EF1AFCE55 /* GitHubUpdateChecker */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 966ABF0D77B0F618BA9381FC /* XCRemoteSwiftPackageReference "GitHubUpdateChecker" */;
+			productName = GitHubUpdateChecker;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = E3615B8137F164A01BAC728D /* Project object */;
 }

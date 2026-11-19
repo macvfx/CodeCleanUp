@@ -12,6 +12,10 @@ enum Format {
         return "\(kb) KB"
     }
 
+    static func humanBytes(_ bytes: Int64) -> String {
+        human(Int(bytes / 1024))
+    }
+
     static let timestamp: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"

@@ -1,5 +1,13 @@
 import Foundation
 
+enum RunKind {
+    case backup, scan, preview
+}
+
+enum RunOutcome {
+    case ok, warnings, error, cancelled
+}
+
 @MainActor
 final class RunManager: ObservableObject {
     static let shared = RunManager()
@@ -7,16 +15,28 @@ final class RunManager: ObservableObject {
     @Published var isRunning = false
     @Published var logText = ""
     @Published var lastRunSummary: String?
+    /// What the running pipeline is doing now, for the menu.
+    @Published var stepText = ""
+    @Published var runningKind: RunKind = .backup
+    @Published var lastRunDate: Date?
+    @Published var lastRunKind: RunKind = .backup
+    @Published var lastOutcome: RunOutcome = .ok
+    @Published var lastPreview: PreviewSummary?
 
     private var pipeline: PipelineRunner?
 
-    func run(config: RunConfiguration) {
+    func run(config: RunConfiguration, kind: RunKind = .backup) {
         guard !isRunning else { return }
         isRunning = true
+        runningKind = kind
+        stepText = "Starting…"
         logText = ""
         lastRunSummary = nil
 
         let runner = PipelineRunner(config: config)
+        runner.onStep = { [weak self] text in
+            DispatchQueue.main.async { self?.stepText = text }
+        }
         pipeline = runner
 
         Task.detached(priority: .userInitiated) { [weak runner] in
@@ -27,9 +47,18 @@ final class RunManager: ObservableObject {
                 }
             }
             await MainActor.run { [weak self] in
-                self?.pipeline = nil
-                self?.isRunning = false
-                self?.lastRunSummary = summary
+                guard let self else { return }
+                self.pipeline = nil
+                self.isRunning = false
+                self.stepText = ""
+                self.lastRunSummary = summary
+                self.lastRunDate = Date()
+                self.lastRunKind = kind
+                self.lastOutcome = runner.outcome
+                if kind == .preview, let preview = runner.previewSummary {
+                    self.lastPreview = preview
+                    PreviewWindowController.shared.show()
+                }
             }
         }
     }
@@ -40,18 +69,22 @@ final class RunManager: ObservableObject {
         config.doDerivedData = false
         config.doArchive = false
         config.doRemoveBuildFolders = false
-        run(config: config)
+        run(config: config, kind: .scan)
     }
 
     /// Lists the build folders that would be removed, deleting nothing.
     func runPreviewCleanup(config: RunConfiguration) {
         var config = config
+        config.archiveToggleOn = config.doArchive
+        config.removeToggleOn = config.doRemoveBuildFolders
+        config.derivedToggleOn = config.doDerivedData
         config.doClean = false
         config.doDerivedData = false
         config.doArchive = false
         config.doRemoveBuildFolders = true
         config.dryRunCleanup = true
-        run(config: config)
+        config.previewArchive = true
+        run(config: config, kind: .preview)
     }
 
     func cancel() {
@@ -71,6 +104,13 @@ final class PipelineRunner {
     private let config: RunConfiguration
     private var isCancelled = false
     private var activeHandle: ProcessHandle?
+    private var archiveFailed = false
+    private var failureCount = 0
+
+    /// Called at the start of each stage with a short description.
+    var onStep: ((String) -> Void)?
+    private(set) var previewSummary: PreviewSummary?
+    private(set) var outcome: RunOutcome = .ok
 
     init(config: RunConfiguration) {
         self.config = config
@@ -97,10 +137,13 @@ final class PipelineRunner {
         log("  Started     : \(Date())")
         log("")
 
-        let scan = ProjectScanner.scan(searchRoot: searchRoot, prunePaths: config.prunePaths, log: log)
+        onStep?("Scanning for Xcode projects…")
+        // Scheme detection runs xcodebuild -list on every project (minutes), and only
+        // xcodebuild clean needs it.
+        let scan = ProjectScanner.scan(searchRoot: searchRoot, prunePaths: config.prunePaths, detectSchemes: config.doClean, log: log)
         log("Found \(scan.containers.count) Xcode container(s), \(scan.buildFolders.count) build folder(s).")
         for container in scan.containers {
-            let schemes = container.schemes.isEmpty ? "(no schemes)" : container.schemes.joined(separator: ", ")
+            let schemes = !container.schemesChecked ? "(not checked: only xcodebuild clean needs them)" : container.schemes.isEmpty ? "(no schemes)" : container.schemes.joined(separator: ", ")
             log("  [\(container.kind)] \(container.path)")
             log("    Schemes: \(schemes)")
         }
@@ -131,6 +174,7 @@ final class PipelineRunner {
             log("==============================================")
             log("  Xcode Clean")
             log("==============================================")
+            onStep?("Running xcodebuild clean…")
             clean = CleanupService.runXcodeClean(containers: scan.containers, log: log)
             log("  Cleaned: \(clean.success), Failed: \(clean.failed), Skipped: \(clean.skipped)")
             log("")
@@ -144,6 +188,7 @@ final class PipelineRunner {
             log("==============================================")
             log("  DerivedData Cleanup")
             log("==============================================")
+            onStep?("Removing DerivedData…")
             derivedRemoved = CleanupService.removeDerivedData(paths: derivedFolders, log: log)
             log("  Removed: \(Format.human(derivedRemoved.removedKB)), Failed: \(derivedRemoved.failed)")
             log("")
@@ -158,6 +203,7 @@ final class PipelineRunner {
             log("==============================================")
             log(config.dryRunCleanup ? "  Build Folder Cleanup (preview, nothing deleted)" : "  Build Folder Cleanup")
             log("==============================================")
+            onStep?(config.dryRunCleanup ? "Listing build folders…" : "Removing build folders…")
             buildRemoved = CleanupService.removeBuildFolders(
                 scan.buildFolders,
                 searchRoot: searchRoot,
@@ -173,10 +219,24 @@ final class PipelineRunner {
 
         if cancelled() { return finish(scan: scan, clean: clean, archivePath: nil, timestamp: timestamp, startedAt: startedAt, cancelled: true, reportOK: false) }
 
+        if config.previewArchive {
+            onStep?("Working out what would be archived…")
+            previewSummary = makePreview(
+                scan: scan,
+                derivedFolders: derivedFolders,
+                derivedSizeKB: derivedSizeKB,
+                searchRoot: searchRoot,
+                startedAt: startedAt,
+                log: log
+            )
+            if cancelled() { return finish(scan: scan, clean: clean, archivePath: nil, timestamp: timestamp, startedAt: startedAt, cancelled: true, reportOK: false) }
+        }
+
         if config.doArchive {
             log("==============================================")
             log("  Archive Projects Folder")
             log("==============================================")
+            onStep?("Creating the zip archive…")
             let zipPath = resolveZipPath(zipPathSetting: config.zipPath, searchRoot: searchRoot, slug: slug, timestamp: timestamp)
             let password = resolvePassword()
             let hasPassword = !(password ?? "").isEmpty
@@ -187,15 +247,11 @@ final class PipelineRunner {
             if hasPassword {
                 log("Note: zip's built-in encryption (ZipCrypto) is weak and the password is visible to other local processes while zip runs. Keep the archive on trusted storage.")
             }
-            let artifactPaths = scan.buildFolders.filter { $0.kind == .xcodeBuild && !$0.hasTrackedFiles }.map(\.path)
-            let exclusions = ArchiveService.effectiveExclusions(
-                userPatterns: config.exclusions,
-                artifactPaths: artifactPaths,
-                excludeSecrets: excludeSecrets
-            )
+            let exclusions = archiveExclusions(scan: scan, excludeSecrets: excludeSecrets)
             if config.passwordMode != .none, password == nil {
                 let modeLabel = config.passwordMode == .keychain ? "Keychain" : "Custom"
                 log("✗ No zip password available (\(modeLabel) mode). Open Settings and save a password — archive skipped.")
+                archiveFailed = true
             } else {
                 log("Archiving \(searchRoot) to \(zipPath)...")
                 let handle = ProcessHandle()
@@ -209,6 +265,8 @@ final class PipelineRunner {
                     log: log
                 ) {
                     archivePath = zipPath
+                } else {
+                    archiveFailed = true
                 }
                 activeHandle = nil
             }
@@ -232,6 +290,7 @@ final class PipelineRunner {
             archive: archivePath
         )
         let reportOK = reportFiles != nil
+        failureCount = clean.failed + derivedRemoved.failed + buildRemoved.failed
         if let reportFiles {
             log("")
             log("Report saved : \(reportFiles.txtPath)")
@@ -249,6 +308,87 @@ final class PipelineRunner {
         return finish(scan: scan, clean: clean, archivePath: archivePath, timestamp: timestamp, startedAt: startedAt, cancelled: false, reportOK: reportOK)
     }
 
+    /// The exact -x list the real archive uses, so a preview matches a run.
+    private func archiveExclusions(scan: ScanResult, excludeSecrets: Bool) -> [String] {
+        let artifactPaths = scan.buildFolders.filter { $0.kind == .xcodeBuild && !$0.hasTrackedFiles }.map(\.path)
+        return ArchiveService.effectiveExclusions(
+            userPatterns: config.exclusions,
+            artifactPaths: artifactPaths,
+            excludeSecrets: excludeSecrets
+        )
+    }
+
+    private func makePreview(
+        scan: ScanResult,
+        derivedFolders: [String],
+        derivedSizeKB: Int,
+        searchRoot: String,
+        startedAt: Date,
+        log: (String) -> Void
+    ) -> PreviewSummary {
+        var summary = PreviewSummary(searchRoot: searchRoot)
+        summary.projectsScanned = scan.containers.count
+        summary.schemesSeen = scan.totalSchemes
+        summary.buildFolders = scan.buildFolders
+        summary.derivedDataFolders = derivedFolders.count
+        summary.derivedDataKB = derivedSizeKB
+        summary.archiveSettingOn = config.archiveToggleOn
+
+        let password = resolvePassword()
+        let hasPassword = !(password ?? "").isEmpty
+        let excludeSecrets = config.excludeSecretsAlways || !hasPassword
+        summary.archiveEncrypted = hasPassword
+        summary.credentialFilesLeftOut = excludeSecrets
+        let exclusions = archiveExclusions(scan: scan, excludeSecrets: excludeSecrets)
+
+        log("==============================================")
+        log("  Archive Preview (nothing is zipped)")
+        log("==============================================")
+        let handle = ProcessHandle()
+        activeHandle = handle
+        let included = ArchiveService.dryRunListing(searchRoot: searchRoot, exclusions: exclusions, handle: handle)
+        if let included, !isCancelled {
+            summary.archiveFiles = included.files.count
+            summary.archiveBytes = included.bytes
+            log("Would archive \(included.files.count) file(s), about \(Format.humanBytes(included.bytes)) before compression.")
+
+            if let everything = ArchiveService.dryRunListing(searchRoot: searchRoot, exclusions: [], handle: handle), !isCancelled {
+                let keep = Set(included.files)
+                let leftOut = everything.files.filter { !keep.contains($0) }
+                summary.excludedFiles = leftOut.count
+                summary.excludedByRule = ArchiveService.countByRule(excluded: leftOut, patterns: exclusions)
+                log("Would leave out \(leftOut.count) file(s).")
+                for rule in summary.excludedByRule.prefix(8) {
+                    log("  \(rule.count)  \(rule.pattern)")
+                }
+            }
+
+            // zip counts a sparse file at its full reported size, so a huge total
+            // against little disk use means one is being read.
+            let usedKB = ProjectScanner.diskUsageKB(at: searchRoot) - scan.removableBuildKB
+            if included.bytes > 8 * 1_073_741_824, included.bytes / 1024 > Int64(max(usedKB, 1)) * 4 {
+                summary.warnings.append("The archive reports \(Format.humanBytes(included.bytes)) but the folder uses far less on disk. A very large sparse file may be included, which would make zip slow.")
+            }
+        } else {
+            log("Could not list what would be archived.")
+            summary.warnings.append("The archive preview could not be worked out. Run Scan Only or check the log.")
+        }
+        activeHandle = nil
+
+        if !config.archiveToggleOn {
+            summary.warnings.append("Create zip archive is off in Settings, so a run would not zip anything. The figures show what it would zip if it were on.")
+        }
+        if !summary.archiveEncrypted, config.passwordMode != .none {
+            summary.warnings.append("No zip password is saved for \(config.passwordMode == .keychain ? "Keychain" : "Custom") mode, so the archive would be skipped. Open Settings to save one.")
+        } else if !summary.archiveEncrypted {
+            summary.warnings.append("The archive would be unencrypted. Credential files are left out automatically.")
+        }
+        summary.removalSettingOn = config.removeToggleOn
+        summary.derivedSettingOn = config.derivedToggleOn
+        summary.elapsedSeconds = Int(Date().timeIntervalSince(startedAt))
+        return summary
+    }
+
     private func finish(
         scan: ScanResult,
         clean: CleanSummary,
@@ -259,6 +399,15 @@ final class PipelineRunner {
         reportOK: Bool
     ) -> String {
         let summary = summaryLine(scan: scan, clean: clean, archivePath: archivePath, timestamp: timestamp, cancelled: cancelled)
+        if cancelled {
+            outcome = .cancelled
+        } else if !reportOK || archiveFailed {
+            outcome = .error
+        } else if failureCount > 0 {
+            outcome = .warnings
+        } else {
+            outcome = .ok
+        }
         let status: String
         if cancelled {
             status = "CANCELLED"

@@ -5,6 +5,8 @@ struct XcodeContainer {
     let kind: String
     let parent: String
     let schemes: [String]
+    /// False when scheme detection was skipped (it runs `xcodebuild -list`, which is slow).
+    var schemesChecked = true
 
     var baseName: String {
         ((path as NSString).lastPathComponent as NSString).deletingPathExtension
@@ -55,7 +57,7 @@ enum ProjectScanner {
         return kb
     }
 
-    static func scan(searchRoot: String, prunePaths: [String], log: (String) -> Void) -> ScanResult {
+    static func scan(searchRoot: String, prunePaths: [String], detectSchemes shouldDetectSchemes: Bool = true, log: (String) -> Void) -> ScanResult {
         let root = searchRoot.expandingTilde()
         let fileManager = FileManager.default
         guard fileManager.fileExists(atPath: root) else {
@@ -90,13 +92,14 @@ enum ProjectScanner {
             let name = url.lastPathComponent
             if name.hasSuffix(".xcodeproj") || name.hasSuffix(".xcworkspace") {
                 let kind = name.hasSuffix(".xcworkspace") ? "workspace" : "project"
-                let schemes = detectSchemes(kind: kind, path: path)
+                let schemes = shouldDetectSchemes ? detectSchemes(kind: kind, path: path) : []
                 containers.append(
                     XcodeContainer(
                         path: path,
                         kind: kind,
                         parent: url.deletingLastPathComponent().lastPathComponent,
-                        schemes: schemes
+                        schemes: schemes,
+                        schemesChecked: shouldDetectSchemes
                     )
                 )
                 enumerator.skipDescendants()

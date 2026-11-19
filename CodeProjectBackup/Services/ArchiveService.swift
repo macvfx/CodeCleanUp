@@ -82,6 +82,61 @@ enum ArchiveService {
         "\(folderSlug)_\(timestamp).zip"
     }
 
+    struct DryRunListing {
+        /// Files only (directories are not listed), as zip names them.
+        var files: [String]
+        /// Uncompressed size zip reports for everything it would add.
+        var bytes: Int64
+    }
+
+    /// Lists what `zip` would add, without creating an archive. Uses `zip -sf`.
+    /// `bytes` is the logical size: a sparse file counts at its full reported size.
+    static func dryRunListing(
+        searchRoot: String,
+        exclusions: [String],
+        handle: ProcessHandle?
+    ) -> DryRunListing? {
+        let tempZip = (NSTemporaryDirectory() as NSString)
+            .appendingPathComponent("cpb-preview-\(UUID().uuidString).zip")
+        defer { try? FileManager.default.removeItem(atPath: tempZip) }
+
+        var args: [String] = ["-r", "-sf", tempZip, searchRoot]
+        if !exclusions.isEmpty {
+            args += ["-x"] + exclusions
+        }
+        let result = ProcessRunner.run(executable: "/usr/bin/zip", arguments: args, handle: handle)
+        guard result.succeeded || result.status == 12 else { return nil }
+        return parseDryRun(result.stdout)
+    }
+
+    static func parseDryRun(_ output: String) -> DryRunListing {
+        var files: [String] = []
+        var bytes: Int64 = 0
+        for line in output.split(separator: "\n", omittingEmptySubsequences: true) {
+            if line.hasPrefix("Total "), let open = line.lastIndex(of: "(") {
+                let digits = line[line.index(after: open)...].prefix { $0.isNumber }
+                bytes = Int64(digits) ?? 0
+            } else if line.hasPrefix("  "), !line.hasSuffix("/") {
+                files.append(String(line.dropFirst(2)))
+            }
+        }
+        return DryRunListing(files: files, bytes: bytes)
+    }
+
+    /// Counts how many of `excluded` each pattern accounts for (first match wins).
+    static func countByRule(excluded: [String], patterns: [String]) -> [PreviewRuleCount] {
+        var counts: [String: Int] = [:]
+        for path in excluded {
+            let absolute = "/" + path
+            for pattern in patterns where fnmatch(pattern, absolute, 0) == 0 {
+                counts[pattern, default: 0] += 1
+                break
+            }
+        }
+        return counts.map { PreviewRuleCount(pattern: $0.key, count: $0.value) }
+            .sorted { $0.count > $1.count }
+    }
+
     static func makeArchive(
         searchRoot: String,
         zipPath: String,
