@@ -33,6 +33,12 @@ struct StatusIconView: View {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let updater = UpdateCheckerViewModel()
+    static weak var current: AppDelegate?
+
+    override init() {
+        super.init()
+        AppDelegate.current = self
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         SchedulerService.shared.start()

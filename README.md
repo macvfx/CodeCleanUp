@@ -54,7 +54,7 @@ Open Settings from the menu bar icon. All settings persist in `UserDefaults`.
 | Create zip archive | on | |
 | Archive path | `~/Downloads` | folder or full file path; empty = Downloads |
 | Password mode | Keychain | |
-| Schedule | Manual | Manual / Hourly / Daily / Weekly |
+| Schedule | Manual | Manual / Hourly / Daily / Weekly; one "Run at" time that follows the Mac's 12 or 24-hour setting |
 | Remove build folders | off | preview first |
 | Archive exclusions | 28 patterns | editable, one per line |
 | Pruned scan paths | `~/Library /System /Volumes /private /usr /opt` | editable |

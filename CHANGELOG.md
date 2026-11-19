@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.2.0 (build 6, unreleased)
+
+### Features
+- **Settings window with a sidebar.** Folders, Cleanup, Archive, Schedule and Advanced each
+  get a pane with a large title. Run Log, Reports, Archives, Help and Updates are in the
+  sidebar too. Back Up Now is a blue button pinned at the bottom of every pane, with an
+  orange Cancel while a run is going.
+
+### Fixes
+- **Schedule time was hard to read and its clock was not stated.** Hour and Minute were two
+  separate pop-ups pushed to opposite edges of the page, always 24-hour with no label saying
+  so. Now one "Run at" time control follows the Mac's 12 or 24-hour setting, and a sentence
+  under the schedule says exactly when it runs, in both forms, for example "Runs every day at
+  02:00 (2:00 AM)." Stored settings are unchanged (hour and minute as numbers).
+
 ## 1.2.0 (builds 4 and 5)
 
 ### Features

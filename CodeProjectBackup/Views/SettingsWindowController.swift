@@ -15,7 +15,7 @@ final class SettingsWindowController {
             window.title = "Code Project Backup Settings"
             window.styleMask = [.titled, .closable, .resizable]
             window.isReleasedWhenClosed = false
-            window.setContentSize(NSSize(width: 700, height: 780))
+            window.setContentSize(NSSize(width: 860, height: 680))
             window.center()
             self.window = window
         }

@@ -79,6 +79,7 @@ struct HelpView: View {
             case .schedule:
                 return [
                     "Pick hourly, daily or weekly in Settings. The app checks every minute and catches up missed runs after a launch or wake.",
+                    "Daily and weekly runs start at the \"Run at\" time, shown in your Mac's 12 or 24-hour style. A line under it spells out the schedule, such as \"Runs every day at 02:00 (2:00 AM).\"",
                     "Scheduled runs never prompt. They use the Keychain or Custom password, so save one first.",
                     "Each run adds a line to the run log and writes a report and CSV.",
                 ]
