@@ -81,7 +81,7 @@ struct PreviewSummaryView: View {
                         title: "Would remove",
                         value: p.removable.isEmpty ? "Nothing" : "\(p.removable.count) folder\(p.removable.count == 1 ? "" : "s") · \(Format.human(p.removableKB))",
                         detail: removeDetail(p),
-                        tint: p.removable.isEmpty && p.derivedDataFolders == 0 ? .secondary : .green
+                        tint: p.removable.isEmpty && p.derivedDataFolders == 0 && p.devToolsItems == 0 ? .secondary : .green
                     )
                 }
                 GridRow {
@@ -203,6 +203,10 @@ struct PreviewSummaryView: View {
         if p.derivedDataFolders > 0 {
             lines.append("DerivedData: \(p.derivedDataFolders) folder\(p.derivedDataFolders == 1 ? "" : "s"), \(Format.human(p.derivedDataKB)). Removal is \(p.derivedSettingOn ? "on" : "off") in Settings.")
         }
+        if p.devToolsItems > 0 {
+            lines.append("Xcode leftovers: \(p.devToolsItems) item\(p.devToolsItems == 1 ? "" : "s"), \(Format.human(p.devToolsKB)), moved to the Trash. Cleanup is \(p.devToolsSettingOn ? "on" : "off") in Settings.")
+        }
+        for note in p.devToolsNotes { lines.append(note) }
         return lines.joined(separator: "\n")
     }
 

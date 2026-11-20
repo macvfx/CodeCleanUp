@@ -27,6 +27,11 @@ struct PreviewSummary {
     var archiveSettingOn = true
     var removalSettingOn = false
     var derivedSettingOn = true
+    /// Xcode archives, device support, caches and unavailable simulators a run would clear.
+    var devToolsItems = 0
+    var devToolsKB = 0
+    var devToolsSettingOn = false
+    var devToolsNotes: [String] = []
 
     var warnings: [String] = []
 
@@ -44,6 +49,9 @@ struct PreviewSummary {
         lines.append("Kept: \(kept.count) build folder(s)")
         if derivedDataFolders > 0 {
             lines.append("DerivedData: \(derivedDataFolders) folder(s), \(Format.human(derivedDataKB)), removal \(derivedSettingOn ? "on" : "off") in Settings")
+        }
+        if devToolsItems > 0 {
+            lines.append("Developer tools: \(devToolsItems) item(s), \(Format.human(devToolsKB)) to the Trash, cleanup \(devToolsSettingOn ? "on" : "off") in Settings")
         }
         if let archiveFiles, let archiveBytes {
             lines.append("Archive: \(archiveFiles) file(s), about \(Format.humanBytes(archiveBytes)) before compression")

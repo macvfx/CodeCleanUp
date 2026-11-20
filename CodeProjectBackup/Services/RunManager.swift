@@ -105,6 +105,7 @@ final class RunManager: ObservableObject {
         config.doDerivedData = false
         config.doArchive = false
         config.doRemoveBuildFolders = false
+        config.doDevTools = false
         run(config: config, kind: .scan)
     }
 
@@ -114,6 +115,8 @@ final class RunManager: ObservableObject {
         config.archiveToggleOn = config.doArchive
         config.removeToggleOn = config.doRemoveBuildFolders
         config.derivedToggleOn = config.doDerivedData
+        config.devToolsToggleOn = config.doDevTools
+        config.doDevTools = true
         config.doClean = false
         config.doDerivedData = false
         config.doArchive = false
@@ -142,6 +145,8 @@ final class PipelineRunner {
     private var activeHandle: ProcessHandle?
     private var archiveFailed = false
     private var failureCount = 0
+    private var devToolsPlan: DevToolsPlan?
+    private var devToolsRemoved = DevToolsCleanSummary()
 
     /// Called at the start of each stage with a short description.
     var onStep: ((String) -> Void)?
@@ -261,6 +266,28 @@ final class PipelineRunner {
 
         if cancelled() { return finish(scan: scan, clean: clean, archivePath: nil, timestamp: timestamp, startedAt: startedAt, cancelled: true, reportOK: false) }
 
+        if config.doDevTools {
+            log("==============================================")
+            log(config.dryRunCleanup ? "  Developer Tools Cleanup (preview, nothing changed)" : "  Developer Tools Cleanup")
+            log("==============================================")
+            onStep?(config.dryRunCleanup ? "Checking Xcode leftovers…" : "Cleaning Xcode leftovers…")
+            let plan = DevToolsCleanupService.plan(options: config.devTools, log: log)
+            devToolsPlan = plan
+            for note in plan.notes { log("  – \(note)") }
+            devToolsRemoved = DevToolsCleanupService.clean(plan: plan, dryRun: config.dryRunCleanup, log: log)
+            warnings += devToolsRemoved.failures
+            let verb = config.dryRunCleanup ? "Would trash" : "Trashed"
+            log("  \(verb): \(devToolsRemoved.trashed) item(s), \(Format.human(devToolsRemoved.trashedKB)); failed \(devToolsRemoved.failed)")
+            if !config.dryRunCleanup {
+                log("  Empty the Trash to free the space.")
+            }
+            log("")
+        } else {
+            log("Developer tools cleanup: skipped.")
+        }
+
+        if cancelled() { return finish(scan: scan, clean: clean, archivePath: nil, timestamp: timestamp, startedAt: startedAt, cancelled: true, reportOK: false) }
+
         if config.previewArchive {
             onStep?("Working out what would be archived…")
             previewSummary = makePreview(
@@ -345,7 +372,7 @@ final class PipelineRunner {
             archive: archivePath
         )
         let reportOK = reportFiles != nil
-        failureCount = clean.failed + derivedRemoved.failed + buildRemoved.failed
+        failureCount = clean.failed + derivedRemoved.failed + buildRemoved.failed + devToolsRemoved.failed
         if let reportFiles {
             log("")
             log("Report saved : \(reportFiles.txtPath)")
@@ -440,6 +467,12 @@ final class PipelineRunner {
         }
         summary.removalSettingOn = config.removeToggleOn
         summary.derivedSettingOn = config.derivedToggleOn
+        summary.devToolsSettingOn = config.devToolsToggleOn
+        if let plan = devToolsPlan {
+            summary.devToolsItems = plan.candidates.count + plan.unavailableSimulators
+            summary.devToolsKB = plan.totalKB
+            summary.devToolsNotes = plan.notes
+        }
         summary.elapsedSeconds = Int(Date().timeIntervalSince(startedAt))
         return summary
     }
@@ -523,6 +556,9 @@ final class PipelineRunner {
             return "Cancelled at \(timestamp) — \(scan.containers.count) project(s) scanned"
         }
         var parts = ["\(scan.containers.count) project(s)", "\(clean.success) cleaned"]
+        if devToolsRemoved.trashed > 0 {
+            parts.append("\(devToolsRemoved.trashed) dev-tool item(s) trashed, \(Format.human(devToolsRemoved.trashedKB))")
+        }
         if !warnings.isEmpty {
             parts.append("\(warnings.count) warning(s)")
         }

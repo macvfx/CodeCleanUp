@@ -21,6 +21,7 @@
 		A7BCCE7FFB8125ECD34FDDE9 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E662D12DE09B6CB26436252 /* SettingsWindowController.swift */; };
 		A9E0E0AB5C15D86266026AD3 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91C74A56CA6AB5992001F0A6 /* SettingsStore.swift */; };
 		AD511DF1B53709C33913FE14 /* SchedulerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525A547A1450B7AEDB672D7B /* SchedulerService.swift */; };
+		B5D30C447E608C38A8673D4F /* DevToolsCleanupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71A8D9FAD9009D1B21515E3D /* DevToolsCleanupService.swift */; };
 		B92624293DA5D6E7D7E1A905 /* ArchiveService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A94E8263137C1FE75DF79DE /* ArchiveService.swift */; };
 		BADD6256DB3690C635A8937B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97D8C965159DEA2E2BDE9BF7 /* SettingsView.swift */; };
 		BFE114F79B8A0169FAB6993F /* MenuBarMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8594F2DC2D2663A2E103AA25 /* MenuBarMenu.swift */; };
@@ -40,6 +41,7 @@
 		555DF115117815BC470ABF62 /* PreviewSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSummary.swift; sourceTree = "<group>"; };
 		5FE13B1DF468AA3440FAF609 /* PreviewSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSummaryView.swift; sourceTree = "<group>"; };
 		6455054E9F843F815A8FC64F /* HelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpView.swift; sourceTree = "<group>"; };
+		71A8D9FAD9009D1B21515E3D /* DevToolsCleanupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevToolsCleanupService.swift; sourceTree = "<group>"; };
 		721E8CA74022605892A10C47 /* CodeProjectBackup.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CodeProjectBackup.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		77BAE2F1560A3EE100C5A77F /* Format.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Format.swift; sourceTree = "<group>"; };
 		8594F2DC2D2663A2E103AA25 /* MenuBarMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarMenu.swift; sourceTree = "<group>"; };
@@ -124,6 +126,7 @@
 			children = (
 				0A94E8263137C1FE75DF79DE /* ArchiveService.swift */,
 				23CE96555C89F9BEB81656F1 /* CleanupService.swift */,
+				71A8D9FAD9009D1B21515E3D /* DevToolsCleanupService.swift */,
 				77BAE2F1560A3EE100C5A77F /* Format.swift */,
 				8FA5D59F6048B3892D9DB3F1 /* KeychainService.swift */,
 				8B96EE5F7D5AB1067B7AF75D /* ProcessRunner.swift */,
@@ -174,7 +177,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					BFB102EDF897367B81ADB063 = {
 						ProvisioningStyle = Manual;
@@ -223,6 +226,7 @@
 				B92624293DA5D6E7D7E1A905 /* ArchiveService.swift in Sources */,
 				7D9D9C59FD950DB9A2C4AC8D /* CleanupService.swift in Sources */,
 				CF17CE2808B1332A05DF5D15 /* CodeProjectBackupApp.swift in Sources */,
+				B5D30C447E608C38A8673D4F /* DevToolsCleanupService.swift in Sources */,
 				C86931344A8ECB329F7CC1D3 /* Format.swift in Sources */,
 				DB37B9CC14A962B4D99BA0DE /* HelpView.swift in Sources */,
 				23EC7B729C05FC26F8B8BEF4 /* KeychainService.swift in Sources */,

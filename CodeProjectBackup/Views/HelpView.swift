@@ -68,6 +68,7 @@ struct HelpView: View {
                     "A folder is never removed if git tracks any file in it, or if it changed in the last hour. Paths outside the Search root are refused.",
                     "Removal is off by default. Preview shows exactly what would go before you turn it on.",
                     "Everything removed is rebuilt by Xcode or SwiftPM on the next build, so the next build is slower.",
+                    "Xcode and developer tools (Settings, Cleanup) is a separate, optional step that runs with the backup, on its schedule. It works outside the search root and moves old Xcode archives, old device-support folders, Xcode and SwiftPM caches to the Trash, and deletes unavailable simulator devices. The newest archive of each app is always kept, since it holds that build's debug symbols; caches are left alone while Xcode is open. Preview lists what it would do. The space is freed when you empty the Trash.",
                 ]
             case .archive:
                 return [

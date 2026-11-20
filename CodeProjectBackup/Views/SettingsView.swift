@@ -180,6 +180,27 @@ struct SettingsView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
+        Section("Xcode and developer tools") {
+            Toggle("Also clear old Xcode leftovers", isOn: $settings.doDevTools)
+            Text("Runs with the backup and on its schedule. Works outside the search root, in the Xcode folders in your Library. Everything goes to the Trash, so it can be put back; the space is freed when you empty it.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Group {
+                Toggle("Old Xcode archives", isOn: $settings.devArchives)
+                if settings.devArchives {
+                    Stepper(value: $settings.devArchiveDays, in: 7...730, step: 7) {
+                        Text("Older than \(settings.devArchiveDays) days")
+                    }
+                    .padding(.leading, 20)
+                    Text("The newest archive of each app is always kept, because it holds that build's debug symbols.")
+                        .font(.caption).foregroundStyle(.secondary).padding(.leading, 20)
+                }
+                Toggle("Old device support (keeps the newest per device)", isOn: $settings.devDeviceSupport)
+                Toggle("Xcode and SwiftPM caches (skipped while Xcode is open)", isOn: $settings.devCaches)
+                Toggle("Unavailable simulator devices", isOn: $settings.devSimulators)
+            }
+            .disabled(!settings.doDevTools)
+        }
     }
 
     @ViewBuilder private var archiveSection: some View {

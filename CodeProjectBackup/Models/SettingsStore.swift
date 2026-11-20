@@ -58,6 +58,12 @@ struct RunConfiguration {
     var removeToggleOn = false
     /// Whether DerivedData removal is on in Settings, for the preview's notes.
     var derivedToggleOn = true
+    /// Optional cleanup of Xcode archives, device support, caches and simulators,
+    /// outside the search root. Off by default.
+    var doDevTools = false
+    var devTools = DevToolsOptions()
+    /// Whether the developer-tools cleanup is on in Settings, for the preview's notes.
+    var devToolsToggleOn = false
 }
 
 final class SettingsStore: ObservableObject {
@@ -121,6 +127,26 @@ final class SettingsStore: ObservableObject {
     @Published var doRemoveBuildFolders: Bool {
         didSet { defaults.set(doRemoveBuildFolders, forKey: "doRemoveBuildFolders") }
     }
+    /// Also reclaim space used by Xcode and developer tools (archives, device support,
+    /// caches, unavailable simulators). Runs with the backup, on the same schedule. Off by default.
+    @Published var doDevTools: Bool {
+        didSet { defaults.set(doDevTools, forKey: "doDevTools") }
+    }
+    @Published var devArchives: Bool {
+        didSet { defaults.set(devArchives, forKey: "devArchives") }
+    }
+    @Published var devArchiveDays: Int {
+        didSet { defaults.set(devArchiveDays, forKey: "devArchiveDays") }
+    }
+    @Published var devDeviceSupport: Bool {
+        didSet { defaults.set(devDeviceSupport, forKey: "devDeviceSupport") }
+    }
+    @Published var devCaches: Bool {
+        didSet { defaults.set(devCaches, forKey: "devCaches") }
+    }
+    @Published var devSimulators: Bool {
+        didSet { defaults.set(devSimulators, forKey: "devSimulators") }
+    }
     /// Skip credential files even when the archive is password-protected.
     @Published var excludeSecretsAlways: Bool {
         didSet { defaults.set(excludeSecretsAlways, forKey: "excludeSecretsAlways") }
@@ -149,6 +175,12 @@ final class SettingsStore: ObservableObject {
         scheduleWeekday = defaults.object(forKey: "scheduleWeekday") as? Int ?? 1
         lastScheduledRun = defaults.object(forKey: "lastScheduledRun") as? Date
         doRemoveBuildFolders = defaults.object(forKey: "doRemoveBuildFolders") as? Bool ?? false
+        doDevTools = defaults.object(forKey: "doDevTools") as? Bool ?? false
+        devArchives = defaults.object(forKey: "devArchives") as? Bool ?? true
+        devArchiveDays = defaults.object(forKey: "devArchiveDays") as? Int ?? 60
+        devDeviceSupport = defaults.object(forKey: "devDeviceSupport") as? Bool ?? true
+        devCaches = defaults.object(forKey: "devCaches") as? Bool ?? true
+        devSimulators = defaults.object(forKey: "devSimulators") as? Bool ?? true
         excludeSecretsAlways = defaults.object(forKey: "excludeSecretsAlways") as? Bool ?? false
         var savedExclusions = defaults.string(forKey: "exclusionsText") ?? SettingsStore.defaultExclusions.joined(separator: "\n")
         // Saved settings override the defaults, so patterns added in a newer version
@@ -193,7 +225,15 @@ final class SettingsStore: ObservableObject {
             exclusions: lines(from: exclusionsText),
             prunePaths: lines(from: prunePathsText),
             reportAlias: reportAlias,
-            scheduleMode: scheduleMode
+            scheduleMode: scheduleMode,
+            doDevTools: doDevTools,
+            devTools: DevToolsOptions(
+                archives: devArchives,
+                archiveDays: devArchiveDays,
+                deviceSupport: devDeviceSupport,
+                caches: devCaches,
+                simulators: devSimulators
+            )
         )
     }
 

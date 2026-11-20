@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.2.0 (build 7, unreleased)
+
+### Features
+- **Optional cleanup of Xcode and developer-tool leftovers**, in Settings, Cleanup, under
+  "Xcode and developer tools". Off by default. When on, it runs as one more step of every
+  backup, so it follows the same schedule, and Preview lists what it would do. It works
+  outside the search root and covers: Xcode archives older than a chosen number of days
+  (default 60; the newest archive of each app is always kept, because an archive holds the
+  only debug symbols for that build), old device-support folders (newest per device model
+  kept), the Xcode and SwiftPM caches and simulator logs (skipped while Xcode is open), and
+  simulator devices Xcode already marks unavailable. Everything except the simulators goes to
+  the Trash, so it can be put back; the space is freed when the Trash is emptied. Removal is
+  limited to those Xcode folders and refuses any other path. The same rules are in
+  `dev_space_cleanup.sh` in the find repo.
+
 ## 1.2.0 (build 6, unreleased)
 
 ### Features

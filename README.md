@@ -56,13 +56,14 @@ Open Settings from the menu bar icon. All settings persist in `UserDefaults`.
 | Password mode | Keychain | |
 | Schedule | Manual | Manual / Hourly / Daily / Weekly; one "Run at" time that follows the Mac's 12 or 24-hour setting |
 | Remove build folders | off | preview first |
+| Clear old Xcode leftovers | off | archives older than 60 days (newest per app kept), old device support, Xcode/SwiftPM caches, unavailable simulators; to the Trash; runs on the backup schedule |
 | Archive exclusions | 28 patterns | editable, one per line |
 | Pruned scan paths | `~/Library /System /Volumes /private /usr /opt` | editable |
 
 ## Running the pipeline
 
 `Run Backup Now` (menu or Settings) runs: scan → clean → DerivedData removal →
-archive → reports. `Scan` skips all destructive/archive steps and just
+build folders → Xcode leftovers (optional) → archive → reports. `Scan` skips all destructive/archive steps and just
 writes reports. `Cancel` stops between steps (and terminates a running `zip`).
 
 ## Menu & launch options
@@ -169,5 +170,8 @@ grant **Full Disk Access** to the app in:
   passed to `zip` with `-P`, so other local processes can see it in the process
   arguments while `zip` runs, and zip's built-in encryption (ZipCrypto) is weak.
   Keep archives on trusted storage.
+- The Xcode leftovers step is off by default, moves to the Trash rather than deleting,
+  always keeps the newest archive of each app, skips caches while Xcode is open, and only
+  ever touches the Xcode archives, device-support and cache folders.
 - Build folder removal is off by default, skips folders with git-tracked files or
   recent changes, and never touches paths outside the search root.
