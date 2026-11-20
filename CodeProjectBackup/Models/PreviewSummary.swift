@@ -31,7 +31,6 @@ struct PreviewSummary {
     var devToolsItems = 0
     var devToolsKB = 0
     var devToolsSettingOn = false
-    var devToolsNotes: [String] = []
 
     var warnings: [String] = []
 

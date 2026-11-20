@@ -206,7 +206,6 @@ struct PreviewSummaryView: View {
         if p.devToolsItems > 0 {
             lines.append("Xcode leftovers: \(p.devToolsItems) item\(p.devToolsItems == 1 ? "" : "s"), \(Format.human(p.devToolsKB)), moved to the Trash. Cleanup is \(p.devToolsSettingOn ? "on" : "off") in Settings.")
         }
-        for note in p.devToolsNotes { lines.append(note) }
         return lines.joined(separator: "\n")
     }
 

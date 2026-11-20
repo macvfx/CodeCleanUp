@@ -1,6 +1,15 @@
 # Changelog
 
-## 1.2.0 (build 7, unreleased)
+## 1.2.0 (build 8, unreleased)
+
+### Fixes
+- **Section title cut off in Settings.** A pane taller than the window scrolls, and its first
+  section title ("Cleanup") was drawn over the pane's own title and blurb. The form is now
+  clipped to its area. The new Xcode and developer tools section made the Cleanup pane tall
+  enough to show it.
+- **Caches skipped while Xcode is open now says so clearly.** Preview shows an orange warning, "Xcode and SwiftPM caches were not checked because Xcode is open. Close Xcode and run Preview again to include them.", instead of a small grey line in a card that was easy to miss.
+
+## 1.2.0 (build 7)
 
 ### Features
 - **Optional cleanup of Xcode and developer-tool leftovers**, in Settings, Cleanup, under

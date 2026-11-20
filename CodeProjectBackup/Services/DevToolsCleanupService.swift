@@ -83,7 +83,7 @@ enum DevToolsCleanupService {
         }
         if options.caches {
             if xcodeIsRunning {
-                plan.notes.append("Caches were left alone because Xcode is open.")
+                plan.notes.append("Xcode and SwiftPM caches were not checked because Xcode is open. Close Xcode and run Preview again to include them.")
             } else {
                 for path in [home + "/Library/Caches/com.apple.dt.Xcode",
                              home + "/Library/Caches/org.swift.swiftpm",

@@ -471,7 +471,7 @@ final class PipelineRunner {
         if let plan = devToolsPlan {
             summary.devToolsItems = plan.candidates.count + plan.unavailableSimulators
             summary.devToolsKB = plan.totalKB
-            summary.devToolsNotes = plan.notes
+            summary.warnings += plan.notes
         }
         summary.elapsedSeconds = Int(Date().timeIntervalSince(startedAt))
         return summary

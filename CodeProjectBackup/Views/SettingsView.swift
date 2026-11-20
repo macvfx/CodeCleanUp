@@ -89,6 +89,9 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
+        // A pane taller than the window scrolls; without this its first section title is
+        // drawn over the pane's own title and blurb.
+        .clipped()
     }
 
     private func sidebarLink(_ title: String, _ icon: String, action: @escaping () -> Void) -> some View {
