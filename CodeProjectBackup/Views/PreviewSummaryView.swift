@@ -79,9 +79,9 @@ struct PreviewSummaryView: View {
                     )
                     StatCard(
                         title: "Would remove",
-                        value: p.removable.isEmpty ? "Nothing" : "\(p.removable.count) folder\(p.removable.count == 1 ? "" : "s") · \(Format.human(p.removableKB))",
+                        value: p.wouldRemoveItems == 0 ? "Nothing" : "\(p.wouldRemoveItems) item\(p.wouldRemoveItems == 1 ? "" : "s") · \(Format.human(p.wouldRemoveKB))",
                         detail: removeDetail(p),
-                        tint: p.removable.isEmpty && p.derivedDataFolders == 0 && p.devToolsItems == 0 ? .secondary : .green
+                        tint: p.wouldRemoveItems == 0 ? .secondary : .green
                     )
                 }
                 GridRow {

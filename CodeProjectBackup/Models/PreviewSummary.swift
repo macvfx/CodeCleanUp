@@ -38,6 +38,15 @@ struct PreviewSummary {
     var kept: [BuildFolder] { buildFolders.filter { !$0.isRemovable } }
     var removableKB: Int { removable.reduce(0) { $0 + $1.sizeKB } }
 
+    /// Everything a run would remove with the current Settings: build folders,
+    /// DerivedData and Xcode leftovers, each counted only while its setting is on.
+    var wouldRemoveItems: Int {
+        (removalSettingOn ? removable.count : 0) + (derivedSettingOn ? derivedDataFolders : 0) + (devToolsSettingOn ? devToolsItems : 0)
+    }
+    var wouldRemoveKB: Int {
+        (removalSettingOn ? removableKB : 0) + (derivedSettingOn ? derivedDataKB : 0) + (devToolsSettingOn ? devToolsKB : 0)
+    }
+
     /// Plain-text copy of the summary, for pasting.
     var plainText: String {
         var lines: [String] = []

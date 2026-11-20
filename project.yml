@@ -46,7 +46,7 @@ targets:
         CFBundleName: Code Project Backup
         CFBundleDisplayName: Code Project Backup
         CFBundleShortVersionString: "1.2.0"
-        CFBundleVersion: "8"
+        CFBundleVersion: "9"
         CFBundleIdentifier: com.local.CodeProjectBackup
         CFBundleExecutable: CodeProjectBackup
         CFBundlePackageType: APPL

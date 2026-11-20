@@ -1,6 +1,15 @@
 # Changelog
 
-## 1.2.0 (build 8, unreleased)
+## 1.2.0 (build 9, unreleased)
+
+### Fixes
+- **Preview said "Would remove: Nothing" while listing gigabytes below it.** The card's headline
+  counted only build folders; DerivedData and the Xcode leftovers appeared only in the small
+  text under it. The headline now totals everything a run would remove with the current
+  Settings (build folders, DerivedData, Xcode leftovers), and an item counts only while its
+  setting is on. The lines underneath still break it down and say when a setting is off.
+
+## 1.2.0 (build 8)
 
 ### Fixes
 - **Section title cut off in Settings.** A pane taller than the window scrolls, and its first
